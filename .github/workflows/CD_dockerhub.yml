@@ -7,33 +7,39 @@
 name: Publish image in Docker Hub
 
 on:
-  release:
-    # Trigger only when a release is published
-    types: [published]
+  workflow_run:
+    workflows:
+      - Codacy CI
+      - Python Lint
+    types:
+      - completed
 
 jobs:
   push_to_registry:
+    # Solo ejecutar si los workflows pasaron con éxito y la rama fue main o trunk
+    if: >
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+          (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'trunk') }}
     runs-on: ubuntu-24.04
 
     steps:
-      
-      # Step 1: Check out the repository code
+      # Step 1: Check out the repository
       - uses: actions/checkout@v5
 
-      # Step 2: Log in to Docker Hub using secrets
+      # Step 2: Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3.6.0
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 3: Build and push the Docker image
+      # Step 3: Build and push Docker image
       - name: Build and push Docker image
         run: |
-          TAG=${{ github.event.release.tag_name }}
+          TAG=${{ github.sha }}
           IMAGE=${{ secrets.DOCKER_USER }}/uvlhub
 
-          docker build --build-arg VERSION_TAG=$TAG -t $IMAGE:$TAG -f docker/images/Dockerfile.prod .
+          docker build --build-arg VERSION_TAG=$TAG -t $IMAGE:$TAG -f docker/images/Dockerfile.render .
           docker push $IMAGE:$TAG
 
           docker tag $IMAGE:$TAG $IMAGE:latest
