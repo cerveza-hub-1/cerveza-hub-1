@@ -9,9 +9,8 @@ name: Pytest
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches:
+      - 'feature_task_*'  # Validación rápida en ramas de desarrollo
 
 jobs:
   pytest:
