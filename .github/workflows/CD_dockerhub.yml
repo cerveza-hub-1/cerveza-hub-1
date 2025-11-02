@@ -37,7 +37,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           TAG=${{ github.sha }}
-          IMAGE=${{ secrets.DOCKER_USER }}/uvlhub
+          IMAGE=${{ secrets.DOCKER_USER }}/cerveza-hub
 
           docker build --build-arg VERSION_TAG=$TAG -t $IMAGE:$TAG -f docker/images/Dockerfile.render .
           docker push $IMAGE:$TAG
