@@ -58,10 +58,6 @@ def login():
             # Si no tiene 2FA, login normal
             login_user(user, remember=True)
             return redirect(url_for("public.index"))
-        '''
-        if authentication_service.login(form.email.data, form.password.data):
-            return redirect(url_for("public.index"))
-        '''
 
     return render_template("auth/login_form.html", form=form)
 
