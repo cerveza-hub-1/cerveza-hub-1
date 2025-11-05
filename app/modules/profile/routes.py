@@ -1,4 +1,10 @@
-from flask import redirect, render_template, request, url_for
+import base64
+import io
+
+# Para 2FA
+import pyotp
+import qrcode
+from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app import db
@@ -13,7 +19,7 @@ from app.modules.profile.services import UserProfileService
 @login_required
 def edit_profile():
     auth_service = AuthenticationService()
-    profile = auth_service.get_authenticated_user_profile
+    profile = auth_service.get_authenticated_user_profile()
     if not profile:
         return redirect(url_for("public.index"))
 
@@ -53,3 +59,68 @@ def my_profile():
         pagination=user_datasets_pagination,
         total_datasets=total_datasets_count,
     )
+
+
+# Ruta para habilitar el 2FA
+@profile_bp.route("/profile/enable-2fa", methods=["GET"])
+@login_required
+def enable_2fa():
+    profile = current_user.profile
+    if not profile:
+        flash("User profile not found.", "error")
+        return redirect(url_for("profile.my_profile"))
+
+    # Generar el código secreto TOTP (de un solo uso)
+    secret = pyotp.random_base32()
+    profile.set_twofa_secret(secret)
+    db.session.commit()
+
+    # Crear URI compatible con Google Authenticator
+    issuer_name = "CervezaHub"
+    uri = pyotp.totp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name=issuer_name)
+
+    # Generar el QR para escanear y confugurar en la app de autenticación
+    qr = qrcode.make(uri)
+    buffer = io.BytesIO()
+    qr.save(buffer, format="PNG")
+    qr_b64 = base64.b64encode(buffer.getvalue()).decode()
+
+    # Se muestra el QR para escanear
+    return render_template("profile/enable_2fa.html", qr_code=qr_b64, secret=secret)
+
+
+# Ruta para verificar el 2FA tras escanear el QR
+@profile_bp.route("/profile/verify-2fa", methods=["POST"])
+@login_required
+def verify_2fa():
+    token = request.form.get("token")
+    profile = current_user.profile
+    secret = profile.get_twofa_secret()
+
+    if not secret:
+        flash("No se encontró el secreto de configuración. Vuelve a generarlo.", "error")
+        return redirect(url_for("profile.enable_2fa"))
+
+    totp = pyotp.TOTP(secret)
+    if totp.verify(token):
+        profile.twofa_enabled = True
+        profile.twofa_confirmed = True
+        profile.save()
+        flash("Autenticación en dos pasos activada correctamente.", "success")
+        return redirect(url_for("profile.my_profile"))
+    else:
+        flash("Código incorrecto. Inténtalo de nuevo.", "error")
+        return redirect(url_for("profile.enable_2fa"))
+
+
+# Ruta para deshabilitar el 2FA
+@profile_bp.route("/profile/disable-2fa")
+@login_required
+def disable_2fa():
+    profile = current_user.profile
+    profile.twofa_enabled = False
+    profile.twofa_confirmed = False
+    profile.twofa_secret = None
+    profile.save()
+    flash("Autenticación en dos pasos desactivada.", "success")
+    return redirect(url_for("profile.my_profile"))
