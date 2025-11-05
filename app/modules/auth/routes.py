@@ -5,7 +5,6 @@ from flask_login import current_user, login_user, logout_user
 from app.modules.auth import auth_bp
 from app.modules.auth.forms import LoginForm, SignupForm
 from app.modules.auth.services import AuthenticationService
-from app.modules.profile.models import UserProfile  # Importar el modelo de UserProfile para 2FA
 from app.modules.profile.services import UserProfileService
 
 authentication_service = AuthenticationService()
