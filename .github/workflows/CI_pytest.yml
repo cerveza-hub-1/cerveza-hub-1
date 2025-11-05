@@ -18,6 +18,7 @@ jobs:
 
     # Global environment variables shared across services and steps
     env:
+      FERNET_KEY: ${{ secrets.FERNET_KEY }}
       MARIADB_ROOT_PASSWORD: uvlhub_root_password
       MARIADB_DATABASE: uvlhubdb_test
       MARIADB_TEST_DATABASE: uvlhubdb_test

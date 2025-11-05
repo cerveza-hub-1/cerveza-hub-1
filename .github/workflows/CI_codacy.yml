@@ -57,6 +57,7 @@ jobs:
           coverage xml
           python-codacy-coverage -r coverage.xml
         env:
+          FERNET_KEY: ${{ secrets.FERNET_KEY }}
           FLASK_ENV: testing
           MARIADB_HOSTNAME: 127.0.0.1
           MARIADB_PORT: 3306
