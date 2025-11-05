@@ -1,0 +1,22 @@
+{% extends "base_template.html" %}
+{% block title %}Enable Two-Factor Authentication{% endblock %}
+
+{% block content %}
+
+<h1 class="h3 mb-3">Configure Two-Factor Authentication (2FA)</h1>
+
+<p>Scan the following QR code to set up second-factor authentication using <strong>Google Authenticator</strong> or <strong>Microsoft Authenticator</strong> mobile app.</p>
+
+<div class="text-center">
+    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid" style="max-width:250px;">
+</div>
+
+<p class="mt-3">Check your preferred one-time password application for a code.</p>
+
+<form action="{{ url_for('profile.verify_2fa') }}" method="POST" class="mt-3">
+    <div class="form-group">
+        <input type="text" name="token" placeholder="123456" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-success mt-2">Verify and activate</button>
+</form>
+{% endblock %}

@@ -21,6 +21,14 @@
                 <p class="card-text h5"><i class="fa fa-building"></i> <strong>Affiliation:</strong> {{user_profile.affiliation}}</p>
                 <p class="card-text h5"><i class="fa fa-id-card"></i> <strong>Orcid:</strong> {{user_profile.orcid}}</p>
                 <p class="card-text h5"><i class="fa fa-envelope"></i> <strong>Email:</strong> {{user.email}}</p>
+                <p class="card-text h5"><i class="fa fa-shield"></i> <strong>Two-factor authentication:</strong>{% if user_profile.twofa_enabled %}
+                        <span class="badge bg-success">Enabled</span>
+                        <a href="{{ url_for('profile.disable_2fa') }}" class="btn btn-sm btn-outline-danger ms-2">Disable</a>
+                    {% else %}
+                        <span class="badge bg-secondary">Disabled</span>
+                        <a href="{{ url_for('profile.enable_2fa') }}" class="btn btn-sm btn-outline-primary ms-2">Enable</a>
+                    {% endif %}
+                </p>
                 <p class="card-text h5"><i class="fa fa-database"></i> <strong>Uploaded datasets:</strong> {{ total_datasets }} datasets</p>
             </div>
             
