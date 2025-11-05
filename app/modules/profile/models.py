@@ -1,6 +1,8 @@
-from app import db
-from cryptography.fernet import Fernet
 import os
+
+from cryptography.fernet import Fernet
+
+from app import db
 
 # ¡¡¡¡ Generación de clave de seguridad, se genera una sola vez !!!!
 FERNET_KEY = os.getenv("FERNET_KEY")
