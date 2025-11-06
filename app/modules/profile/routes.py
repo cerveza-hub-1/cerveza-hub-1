@@ -8,6 +8,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app import db
+from app.modules.auth.models import User
 from app.modules.auth.services import AuthenticationService
 from app.modules.dataset.models import DataSet
 from app.modules.profile import profile_bp
@@ -124,3 +125,30 @@ def disable_2fa():
     profile.save()
     flash("Autenticación en dos pasos desactivada.", "success")
     return redirect(url_for("profile.my_profile"))
+
+
+@profile_bp.route("/profile/<int:user_id>")
+def public_profile(user_id):
+    page = request.args.get("page", 1, type=int)
+    per_page = 5
+
+    user = db.session.query(User).filter_by(id=user_id).first_or_404()
+    user_profile = user.profile
+
+    user_datasets_pagination = (
+        db.session.query(DataSet)
+        .filter(DataSet.user_id == user.id)
+        .order_by(DataSet.created_at.desc())
+        .paginate(page=page, per_page=per_page, error_out=False)
+    )
+
+    total_datasets_count = db.session.query(DataSet).filter(DataSet.user_id == user.id).count()
+
+    return render_template(
+        "profile/summary.html",
+        user_profile=user_profile,
+        user=user,
+        datasets=user_datasets_pagination.items,
+        pagination=user_datasets_pagination,
+        total_datasets=total_datasets_count,
+    )
