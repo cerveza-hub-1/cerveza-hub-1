@@ -1,7 +1,8 @@
 from typing import Optional
-from core.services.BaseService import BaseService
+
 from app.modules.comment.models import Comment
 from app.modules.comment.repositories import CommentRepository
+from core.services.BaseService import BaseService
 
 
 class CommentService(BaseService):
