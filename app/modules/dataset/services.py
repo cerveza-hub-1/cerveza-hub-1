@@ -85,7 +85,7 @@ class DataSetService(BaseService):
 
     def count_dsmetadata(self) -> int:
         return self.dsmetadata_repository.count()
-    
+
     def get_dataset_ranking(self, limit=10):
         """
         Devuelve los datasets más populares según descargas y vistas combinadas.
