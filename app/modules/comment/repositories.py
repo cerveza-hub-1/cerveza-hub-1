@@ -1,9 +1,3 @@
-from datetime import datetime, timezone
-from typing import Optional
-
-from sqlalchemy import desc, func
-
-from app.modules.dataset.models import Author, DataSet, DOIMapping, DSDownloadRecord, DSMetaData, DSViewRecord
 from app.modules.comment.models import Comment
 from core.repositories.BaseRepository import BaseRepository
 

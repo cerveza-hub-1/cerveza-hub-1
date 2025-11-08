@@ -3,8 +3,6 @@ from core.services.BaseService import BaseService
 from app.modules.comment.models import Comment
 from app.modules.comment.repositories import CommentRepository
 
-from flask import request
-
 
 class CommentService(BaseService):
     def __init__(self):

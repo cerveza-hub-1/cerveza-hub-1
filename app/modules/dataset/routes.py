@@ -238,7 +238,6 @@ def download_dataset(dataset_id):
 
 @dataset_bp.route("/doi/<path:doi>/", methods=["GET"])
 def subdomain_index(doi):
-    
     # Check if the DOI is an old DOI
     new_doi = doi_mapping_service.get_new_doi(doi)
     if new_doi:
@@ -255,25 +254,24 @@ def subdomain_index(doi):
     dataset = ds_meta_data.data_set
 
     # --- INICIO DE LOS CAMBIOS PARA COMENTARIOS ---
-    
     # 1. Obtener los comentarios del dataset
     # Asegúrate de que 'comment_service' esté inicializado al principio del archivo routes.py
-    comments = comment_service.get_comments_for_dataset(dataset.id) 
-    
+    comments = comment_service.get_comments_for_dataset(dataset.id)
+
     # 2. Guardar la cookie de vista al usuario
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)
-    
+
     # 3. Crear la respuesta, pasando los 'comments' al template
-    resp = make_response(render_template(
-        "dataset/view_dataset.html", 
-        dataset=dataset, 
-        comments=comments  # <--- Aquí pasamos la lista de comentarios
-    ))
-    
+    resp = make_response(
+        render_template(
+            "dataset/view_dataset.html",
+            dataset=dataset,
+            comments=comments,  # <--- Pasamos la lista de comentarios
+        )
+    )
     # --- FIN DE LOS CAMBIOS PARA COMENTARIOS ---
 
     resp.set_cookie("view_cookie", user_cookie)
-
     return resp
 
 
@@ -300,9 +298,10 @@ comment_service = CommentService()  # Inicializar el servicio
 @dataset_bp.route("/dataset/<int:dataset_id>/comments", methods=["POST"])
 @login_required
 def create_comment_endpoint(dataset_id):
+    """Crea un comentario en un dataset."""
     # Intentar leer JSON, luego fallback a form data
     data = request.get_json(silent=True)
-    
+
     if data:
         content = data.get("content")
         parent_id = data.get("parent_id")
@@ -310,60 +309,67 @@ def create_comment_endpoint(dataset_id):
         content = request.form.get("content")
         parent_id = request.form.get("parent_id")
 
-    # --- CAMBIO CLAVE AQUÍ ---
+    # --- CAMBIO CLAVE ---
     # Convertir cadena vacía ('') a None para que SQLAlchemy lo interprete como NULL
-    if parent_id == '':
+    if parent_id == "":
         parent_id = None
-    
     # --- FIN DEL CAMBIO ---
 
     if not content:
         return jsonify({"message": "Content is required"}), 400
 
     try:
-        # Aseguramos que parent_id sea un entero o None (si es que se pasó un valor numérico)
-        # Esto previene errores si el JS enviase el ID como string, pero la conversión a None ya es el paso crítico.
+        # Convertir parent_id a entero o None
         if parent_id is not None:
             parent_id = int(parent_id)
-             
+
         comment = comment_service.create_comment(
             author_id=current_user.id,
             dataset_id=dataset_id,
             content=content,
-            parent_id=parent_id  # Ahora es None o un entero válido
+            parent_id=parent_id,  # None o entero válido
         )
         return jsonify(comment.to_dict()), 201
+
     except Exception as e:
         logger.exception(f"Error creating comment: {e}")
-        # Retornamos un 500 para indicar que el error es del servidor
-        return jsonify({"message": "Failed to create comment due to server error."}), 500
+        return (
+            jsonify({"message": "Failed to create comment due to server error."}),
+            500,
+        )
+
 
 # 2. GET para listar comentarios
-
-
 @dataset_bp.route("/dataset/<int:dataset_id>/comments", methods=["GET"])
 def list_comments_endpoint(dataset_id):
+    """Lista los comentarios asociados a un dataset."""
     comments = comment_service.get_comments_for_dataset(dataset_id)
-    # Serializa todos los comentarios principales y sus respuestas anidadas (si las hubiera)
-    comments_data = [c.to_dict() for c in comments] 
+    comments_data = [c.to_dict() for c in comments]
     return jsonify(comments_data), 200
 
-# 3. DELETE para moderar/eliminar (Autor del DS)
 
-
+# 3. DELETE para moderar/eliminar (autor del dataset)
 @dataset_bp.route("/comments/<int:comment_id>", methods=["DELETE"])
 @login_required
 def delete_comment_endpoint(comment_id):
+    """Permite eliminar un comentario (solo el autor del dataset)."""
     comment = comment_service.get_or_404(comment_id)
     dataset_author_id = comment.data_set.user_id  # Asumiendo que DataSet tiene user_id
 
-    # Lógica de moderación: solo el autor del dataset puede eliminar el comentario
     if current_user.id != dataset_author_id:
-        # Aquí se añadiría la lógica para usuarios administradores en el futuro
-        return jsonify({"message": "Forbidden. Only the dataset author can delete this comment."}), 403
+        return (
+            jsonify(
+                {
+                    "message": (
+                        "Forbidden. Only the dataset author can delete this comment."
+                    )
+                }
+            ),
+            403,
+        )
 
     try:
-        comment_service.delete_comment(comment_id)  # Soft delete
+        comment_service.delete_comment(comment_id)
         return jsonify({"message": "Comment deleted successfully"}), 200
     except Exception:
         return jsonify({"message": "Failed to delete comment"}), 500
