@@ -233,6 +233,7 @@ def download_dataset(dataset_id):
 
     return resp
 
+
 # AÑADIDO PARA COMMENT
 
 
@@ -286,6 +287,7 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
+
 
 # AÑADIDO PARA COMMENT
 
@@ -358,13 +360,7 @@ def delete_comment_endpoint(comment_id):
 
     if current_user.id != dataset_author_id:
         return (
-            jsonify(
-                {
-                    "message": (
-                        "Forbidden. Only the dataset author can delete this comment."
-                    )
-                }
-            ),
+            jsonify({"message": ("Forbidden. Only the dataset author can delete this comment.")}),
             403,
         )
 

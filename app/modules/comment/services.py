@@ -12,12 +12,7 @@ class CommentService(BaseService):
         return self.repository.get_by_dataset_id(dataset_id)
 
     def create_comment(self, author_id: int, dataset_id: int, content: str, parent_id: Optional[int] = None) -> Comment:
-        return self.create(
-            author_id=author_id,
-            dataset_id=dataset_id,
-            content=content,
-            comment_parent_id=parent_id
-        )
+        return self.create(author_id=author_id, dataset_id=dataset_id, content=content, comment_parent_id=parent_id)
 
     def delete_comment(self, comment_id: int):
         # Implementación de 'moderación' suave (soft delete)
