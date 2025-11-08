@@ -1,0 +1,121 @@
+2025-11-08 10:22:46,420 - app.modules.dataset.routes - ERROR - Error creating comment: (pymysql.err.DataError) (1366, "Incorrect integer value: '' for column `uvlhubdb`.`comment`.`comment_parent_id` at row 1")
+[SQL: INSERT INTO comment (author_id, dataset_id, content, created_at, comment_parent_id, is_deleted) VALUES (%(author_id)s, %(dataset_id)s, %(content)s, %(created_at)s, %(comment_parent_id)s, %(is_deleted)s)]
+[parameters: {'author_id': 1, 'dataset_id': 4, 'content': 'Me ha resultado muy interesante', 'created_at': datetime.datetime(2025, 11, 8, 9, 22, 46, 419049), 'comment_parent_id': '', 'is_deleted': 0}]
+(Background on this error at: https://sqlalche.me/e/20/9h9h)
+Traceback (most recent call last):
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1961, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 944, in do_execute
+    cursor.execute(statement, parameters)
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 563, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 825, in _read_query_result
+    result.read()
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 1199, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.DataError: (1366, "Incorrect integer value: '' for column `uvlhubdb`.`comment`.`comment_parent_id` at row 1")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/marta/cerveza-hub-1/app/modules/dataset/routes.py", line 311, in create_comment_endpoint
+    comment = comment_service.create_comment(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/app/modules/comment/services.py", line 17, in create_comment
+    return self.create(
+           ^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/core/services/BaseService.py", line 9, in create
+    return self.repository.create(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/core/repositories/BaseRepository.py", line 17, in create
+    self.session.commit()
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/scoping.py", line 599, in commit
+    return self._proxied.commit()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4345, in flush
+    self._flush(objects)
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4480, in _flush
+    with util.safe_reraise():
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4441, in _flush
+    flush_context.execute()
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1413, in execute
+    return meth(
+           ^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1635, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1840, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1980, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2349, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1961, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 944, in do_execute
+    cursor.execute(statement, parameters)
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 563, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 825, in _read_query_result
+    result.read()
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 1199, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/marta/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.DataError: (pymysql.err.DataError) (1366, "Incorrect integer value: '' for column `uvlhubdb`.`comment`.`comment_parent_id` at row 1")
+[SQL: INSERT INTO comment (author_id, dataset_id, content, created_at, comment_parent_id, is_deleted) VALUES (%(author_id)s, %(dataset_id)s, %(content)s, %(created_at)s, %(comment_parent_id)s, %(is_deleted)s)]
+[parameters: {'author_id': 1, 'dataset_id': 4, 'content': 'Me ha resultado muy interesante', 'created_at': datetime.datetime(2025, 11, 8, 9, 22, 46, 419049), 'comment_parent_id': '', 'is_deleted': 0}]
+(Background on this error at: https://sqlalche.me/e/20/9h9h)
