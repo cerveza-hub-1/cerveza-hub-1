@@ -229,6 +229,55 @@
 
     </div>
 
+    <div class="col-xl-8 col-lg-12 col-md-12 col-sm-12 mt-4"> 
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Comments</h5>
+            <div id="comments-section">
+                {% if current_user.is_authenticated %}
+                <div class="card p-3 mb-4">
+                    <form id="comment-form" method="POST" action="{{ url_for('dataset.create_comment_endpoint', dataset_id=dataset.id) }}">
+                        <input type="hidden" name="parent_id" id="comment-parent-id" value="">
+                        <textarea class="form-control mb-2" id="comment-content" name="content" placeholder="Write down your comment below..." required></textarea>
+                        <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% for comment in comments %}
+                <div class="comment-item border-start border-3 ps-3 mb-3" id="comment-{{ comment.id }}">
+                    <p class="mb-0">
+                        <strong>{{ comment.author.profile.name }} {{ comment.author.profile.surname }}</strong> 
+                        <span class="text-muted small"> | {{ comment.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                    </p>
+                    <p class="mb-1">{{ comment.content }}</p>
+                    
+                    <div class="comment-actions mb-2">
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.id == dataset.user_id %}
+                                <button class="btn btn-danger btn-sm" onclick="deleteComment('{{ comment.id }}')" type="button">Delete</button>
+                            {% endif %}
+                            <button class="btn btn-secondary btn-sm" 
+                                    onclick="showReplyForm('{{ comment.id }}', '{{ comment.author.profile.name }} {{ comment.author.profile.surname }}')" 
+                                    type="button">Reply</button>
+                        {% endif %}
+                    </div>
+                    
+                    {% for reply in comment.replies %}
+                        <div class="reply-item ms-4 border-start ps-3 pt-2" id="comment-{{ reply.id }}">
+                            <p class="mb-0">
+                                <strong>{{ reply.author.profile.name }} {{ reply.author.profile.surname }}</strong> 
+                                <span class="text-muted small"> | {{ reply.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                            </p>
+                            <p class="mb-1">{{ reply.content }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
     <div class="col-xl-4 col-lg-12 col-md-12 col-sm-12">
 
         <div class="list-group">
@@ -492,6 +541,181 @@
             console.error('Failed to copy text: ', err);
         });
     }
+</script>
+
+<script>
+    // Asegúrate de que esta función exista en tu JS
+    document.addEventListener('DOMContentLoaded', function () {
+        feather.replace();
+        setupCommentForm();
+    });
+
+    // ... (otras funciones como viewFile, checkUVL, etc.)
+
+    // ===============================================================
+    // LÓGICA DE COMENTARIOS
+    // ===============================================================
+
+    function setupCommentForm() {
+        const form = document.getElementById('comment-form');
+        const contentInput = document.getElementById('comment-content');
+        const parentIdInput = document.getElementById('comment-parent-id');
+        const commentsSection = document.getElementById('comments-section');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const url = form.action;
+            const content = contentInput.value;
+            const parent_id = parentIdInput.value; // Será '' o un ID de string
+
+            // Si el contenido está vacío, no hacemos nada
+            if (content.trim() === '') {
+                return;
+            }
+
+            // Simple AJAX POST request
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    // Especificamos que estamos enviando JSON (CORRECTO)
+                    'Content-Type': 'application/json',
+                },
+                // Convertimos los datos a una cadena JSON (CORRECTO)
+                body: JSON.stringify({ 
+                    'content': content,
+                    'parent_id': parent_id
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Si el backend devuelve un 400 o 500, lanzamos error para entrar al catch
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(commentData => {
+                // 1. Añadir el nuevo comentario al DOM
+                const newCommentHtml = renderNewComment(commentData);
+
+                if (commentData.parent_id) {
+                    // Si es una respuesta, añadirla al contenedor del comentario padre
+                    const parentDiv = document.getElementById(`comment-${commentData.parent_id}`);
+                    if (parentDiv) {
+                        // Si el comentario padre existe, insertamos la respuesta al final
+                        parentDiv.insertAdjacentHTML('beforeend', newCommentHtml);
+                    }
+                } else {
+                    // Si es comentario principal, añadirlo al final de la lista de comentarios
+                    commentsSection.insertAdjacentHTML('beforeend', newCommentHtml);
+                }
+
+                // 2. Limpiar formulario y resetear el estado de "Reply"
+                contentInput.value = '';
+                
+                // --- AJUSTE CLAVE: Resetear el estado de respuesta ---
+                parentIdInput.value = ''; // Resetear el ID del padre a vacío
+                contentInput.placeholder = 'Write down your comment below...'; // Resetear el placeholder
+                // --- FIN AJUSTE ---
+
+                feather.replace(); // Recargar iconos Feather si es necesario
+            })
+            .catch(error => {
+                console.error('Error al enviar el comentario:', error);
+                alert(`Error al enviar el comentario: ${error.message || 'Verifica la consola.'}`);
+            });
+        });
+    }
+
+    /**
+     * Muestra el formulario de comentario preparado para responder.
+     */
+    function showReplyForm(parent_id, author_name) {
+        const contentInput = document.getElementById('comment-content');
+        const parentIdInput = document.getElementById('comment-parent-id');
+        
+        parentIdInput.value = parent_id;
+        contentInput.placeholder = `Replying to ${author_name}...`;
+        contentInput.focus();
+        // Opcional: Desplazarse al formulario
+        document.getElementById('comment-form').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    /**
+     * Envía una petición DELETE para eliminar un comentario (Soft Delete).
+     */
+    function deleteComment(comment_id) {
+        if (!confirm('Are you sure you want to delete this comment?')) {
+            return;
+        }
+
+        fetch(`/comments/${comment_id}`, {
+            method: 'DELETE',
+            // Headers necesarios si utilizas un token CSRF global, 
+            // pero el Flask-WTF CSRF en Flask no lo requiere para DELETE simples por defecto.
+        })
+        .then(response => {
+            if (response.status === 200) {
+                // Eliminar el comentario del DOM si el borrado fue exitoso
+                const commentElement = document.getElementById(`comment-${comment_id}`);
+                if (commentElement) {
+                    commentElement.remove();
+                    alert('Comment deleted.');
+                }
+            } else if (response.status === 403) {
+                 alert('Error: You do not have permission to delete this comment.');
+            } else {
+                alert('Error: Could not delete comment.');
+            }
+        })
+        .catch(error => {
+            console.error('Error al eliminar el comentario:', error);
+            alert('Error de conexión al intentar eliminar el comentario.');
+        });
+    }
+
+    /**
+     * Función helper para crear el HTML del nuevo comentario (simplificado).
+     */
+    function renderNewComment(commentData) {
+        // Usamos la fecha real devuelta por el backend, formateada en JS
+        const timestamp = new Date(commentData.created_at).toLocaleString(); 
+        
+        let html;
+
+        // Comprobamos si el comentario es una RESPUESTA (tiene parent_id)
+        if (commentData.parent_id) {
+            // HTML para RESPUESTAS: se añade la indentación (ms-4) y no incluye botones de Delete/Reply.
+            html = `
+                <div class="reply-item ms-4 border-start ps-3 pt-2" id="comment-${commentData.id}">
+                    <p class="mb-0">
+                        <strong>${commentData.author_name}</strong> 
+                        <span class="text-muted small"> | ${timestamp}</span>
+                    </p>
+                    <p class="mb-1">${commentData.content}</p>
+                </div>
+            `;
+        } else {
+            // HTML para COMENTARIOS PRINCIPALES: incluye botones y el ID como cadena para JS.
+            html = `
+                <div class="comment-item border-start border-3 ps-3 mb-3" id="comment-${commentData.id}">
+                    <p class="mb-0">
+                        <strong>${commentData.author_name}</strong> 
+                        <span class="text-muted small"> | ${timestamp}</span>
+                    </p>
+                    <p class="mb-1">${commentData.content}</p>
+                    
+                    <div class="comment-actions mb-2">
+                        <button class="btn btn-secondary btn-sm" onclick="showReplyForm('${commentData.id}', '${commentData.author_name}')" type="button">Reply</button>
+                        
+                        </div>
+                </div>
+            `;
+        }
+
+        return html;
+    }
+
 </script>
 
 {% endblock %}
