@@ -96,20 +96,14 @@ class DataSetService(BaseService):
 
         # Contar descargas por dataset
         downloads_subq = (
-            db.session.query(
-                DSDownloadRecord.dataset_id,
-                func.count(DSDownloadRecord.id).label("downloads")
-            )
+            db.session.query(DSDownloadRecord.dataset_id, func.count(DSDownloadRecord.id).label("downloads"))
             .group_by(DSDownloadRecord.dataset_id)
             .subquery()
         )
 
         # Contar vistas por dataset
         views_subq = (
-            db.session.query(
-                DSViewRecord.dataset_id,
-                func.count(DSViewRecord.id).label("views")
-            )
+            db.session.query(DSViewRecord.dataset_id, func.count(DSViewRecord.id).label("views"))
             .group_by(DSViewRecord.dataset_id)
             .subquery()
         )
@@ -121,7 +115,7 @@ class DataSetService(BaseService):
                 DSMetaData.title.label("title"),
                 func.coalesce(downloads_subq.c.downloads, 0).label("downloads"),
                 func.coalesce(views_subq.c.views, 0).label("views"),
-                (func.coalesce(downloads_subq.c.downloads, 0) + func.coalesce(views_subq.c.views, 0)).label("score")
+                (func.coalesce(downloads_subq.c.downloads, 0) + func.coalesce(views_subq.c.views, 0)).label("score"),
             )
             .join(DSMetaData, DataSet.ds_meta_data_id == DSMetaData.id)
             .outerjoin(downloads_subq, downloads_subq.c.dataset_id == DataSet.id)
@@ -132,13 +126,7 @@ class DataSetService(BaseService):
         )
 
         return [
-            {
-                "id": ds.id,
-                "title": ds.title,
-                "downloads": ds.downloads,
-                "views": ds.views,
-                "score": ds.score
-            }
+            {"id": ds.id, "title": ds.title, "downloads": ds.downloads, "views": ds.views, "score": ds.score}
             for ds in ranking
         ]
 
