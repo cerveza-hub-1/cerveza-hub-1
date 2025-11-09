@@ -91,8 +91,9 @@ class DataSetService(BaseService):
         Devuelve los datasets más populares según descargas y vistas combinadas.
         """
         from sqlalchemy import func
-        from app.modules.dataset.models import DSDownloadRecord, DSViewRecord
+
         from app import db
+        from app.modules.dataset.models import DSDownloadRecord, DSViewRecord
 
         # Contar descargas por dataset
         downloads_subq = (
