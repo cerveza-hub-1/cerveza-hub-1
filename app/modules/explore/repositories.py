@@ -1,7 +1,7 @@
 import re
 
 import unidecode
-from sqlalchemy import any_, or_
+from sqlalchemy import or_
 
 from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
