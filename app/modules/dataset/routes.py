@@ -369,3 +369,31 @@ def delete_comment_endpoint(comment_id):
         return jsonify({"message": "Comment deleted successfully"}), 200
     except Exception:
         return jsonify({"message": "Failed to delete comment"}), 500
+
+
+@dataset_bp.route("/dataset/ranking", methods=["GET"])
+def ranking():
+    """Muestra la página de rankings de datasets."""
+    return render_template("dataset/ranking.html")
+
+
+@dataset_bp.route("/dataset/ranking/downloads", methods=["GET"])
+def get_most_downloaded_datasets():
+    """Obtiene el ranking de datasets más descargados."""
+    try:
+        ranking = dataset_service.get_most_downloaded_datasets(limit=5)
+        return jsonify(ranking), 200
+    except Exception as e:
+        logger.exception(f"Error getting most downloaded datasets: {e}")
+        return jsonify({"message": "Failed to get ranking"}), 500
+
+
+@dataset_bp.route("/dataset/ranking/views", methods=["GET"])
+def get_most_viewed_datasets():
+    """Obtiene el ranking de datasets más vistos."""
+    try:
+        ranking = dataset_service.get_most_viewed_datasets(limit=5)
+        return jsonify(ranking), 200
+    except Exception as e:
+        logger.exception(f"Error getting most viewed datasets: {e}")
+        return jsonify({"message": "Failed to get ranking"}), 500

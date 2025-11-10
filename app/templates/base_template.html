@@ -71,6 +71,13 @@ chico sundermann">
                     </a>
                 </li>
 
+                <li class="sidebar-item {{ 'active' if request.endpoint == 'dataset.ranking' else '' }}">
+                    <a class="sidebar-link">
+                        <i class="align-middle" data-feather="bar-chart-2"></i> <span
+                            class="align-middle">Ranking</span>
+                    </a>
+                </li>
+
                 {% if current_user.is_anonymous %}
 
                     <li class="sidebar-header">

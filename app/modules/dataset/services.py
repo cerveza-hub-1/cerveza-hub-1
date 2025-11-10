@@ -86,14 +86,14 @@ class DataSetService(BaseService):
     def count_dsmetadata(self) -> int:
         return self.dsmetadata_repository.count()
 
-    def get_dataset_ranking(self, limit=10):
+    def get_most_downloaded_datasets(self, limit=10):
         """
-        Devuelve los datasets más populares según descargas y vistas combinadas.
+        Devuelve los datasets más descargados.
         """
         from sqlalchemy import func
 
         from app import db
-        from app.modules.dataset.models import DSDownloadRecord, DSViewRecord
+        from app.modules.dataset.models import DSDownloadRecord
 
         # Contar descargas por dataset
         downloads_subq = (
@@ -102,6 +102,31 @@ class DataSetService(BaseService):
             .subquery()
         )
 
+        # Obtener ranking por descargas
+        ranking = (
+            db.session.query(
+                DataSet.id,
+                DSMetaData.title.label("title"),
+                func.coalesce(downloads_subq.c.downloads, 0).label("downloads"),
+            )
+            .join(DSMetaData, DataSet.ds_meta_data_id == DSMetaData.id)
+            .outerjoin(downloads_subq, downloads_subq.c.dataset_id == DataSet.id)
+            .order_by(func.coalesce(downloads_subq.c.downloads, 0).desc())
+            .limit(limit)
+            .all()
+        )
+
+        return [{"id": ds.id, "title": ds.title, "downloads": ds.downloads} for ds in ranking]
+
+    def get_most_viewed_datasets(self, limit=10):
+        """
+        Devuelve los datasets más vistos.
+        """
+        from sqlalchemy import func
+
+        from app import db
+        from app.modules.dataset.models import DSViewRecord
+
         # Contar vistas por dataset
         views_subq = (
             db.session.query(DSViewRecord.dataset_id, func.count(DSViewRecord.id).label("views"))
@@ -109,27 +134,19 @@ class DataSetService(BaseService):
             .subquery()
         )
 
-        # Combinar y calcular score total
+        # Obtener ranking por vistas
         ranking = (
             db.session.query(
-                DataSet.id,
-                DSMetaData.title.label("title"),
-                func.coalesce(downloads_subq.c.downloads, 0).label("downloads"),
-                func.coalesce(views_subq.c.views, 0).label("views"),
-                (func.coalesce(downloads_subq.c.downloads, 0) + func.coalesce(views_subq.c.views, 0)).label("score"),
+                DataSet.id, DSMetaData.title.label("title"), func.coalesce(views_subq.c.views, 0).label("views")
             )
             .join(DSMetaData, DataSet.ds_meta_data_id == DSMetaData.id)
-            .outerjoin(downloads_subq, downloads_subq.c.dataset_id == DataSet.id)
             .outerjoin(views_subq, views_subq.c.dataset_id == DataSet.id)
-            .order_by(func.coalesce(downloads_subq.c.downloads, 0) + func.coalesce(views_subq.c.views, 0).desc())
+            .order_by(func.coalesce(views_subq.c.views, 0).desc())
             .limit(limit)
             .all()
         )
 
-        return [
-            {"id": ds.id, "title": ds.title, "downloads": ds.downloads, "views": ds.views, "score": ds.score}
-            for ds in ranking
-        ]
+        return [{"id": ds.id, "title": ds.title, "views": ds.views} for ds in ranking]
 
     def total_dataset_downloads(self) -> int:
         return self.dsdownloadrecord_repository.total_dataset_downloads()
