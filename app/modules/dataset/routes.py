@@ -253,7 +253,39 @@ def subdomain_index(doi):
 
     # Save the cookie to the user's browser
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)
-    resp = make_response(render_template("dataset/view_dataset.html", dataset=dataset))
+    
+    # --- INICIO: LÓGICA DE RECOMENDACIONES ---
+    # Obtenemos las 4 listas de recomendaciones (Top 5)
+    
+    recs_general = dataset_service.get_similar_datasets(
+        target_dataset_id=dataset.id, 
+        field_type='full_text_corpus'
+    )
+    
+    recs_authors = dataset_service.get_similar_datasets(
+        target_dataset_id=dataset.id, 
+        field_type='authors'
+    )
+    
+    recs_tags = dataset_service.get_similar_datasets(
+        target_dataset_id=dataset.id, 
+        field_type='tags'
+    )
+    
+    recs_affiliation = dataset_service.get_similar_datasets(
+        target_dataset_id=dataset.id, 
+        field_type='affiliation'
+    )
+    # --- FIN: LÓGICA DE RECOMENDACIONES ---
+
+    resp = make_response(render_template(
+        "dataset/view_dataset.html", 
+        dataset=dataset,
+        recs_general=recs_general,
+        recs_authors=recs_authors,
+        recs_tags=recs_tags,
+        recs_affiliation=recs_affiliation
+    ))
     resp.set_cookie("view_cookie", user_cookie)
 
     return resp
@@ -269,4 +301,35 @@ def get_unsynchronized_dataset(dataset_id):
     if not dataset:
         abort(404)
 
-    return render_template("dataset/view_dataset.html", dataset=dataset)
+    # --- INICIO: LÓGICA DE RECOMENDACIONES ---
+    # Obtenemos las 4 listas de recomendaciones (Top 5)
+    
+    recs_general = dataset_service.get_similar_datasets(
+        target_dataset_id=dataset.id, 
+        field_type='full_text_corpus'
+    )
+    
+    recs_authors = dataset_service.get_similar_datasets(
+        target_dataset_id=dataset.id, 
+        field_type='authors'
+    )
+    
+    recs_tags = dataset_service.get_similar_datasets(
+        target_dataset_id=dataset.id, 
+        field_type='tags'
+    )
+    
+    recs_affiliation = dataset_service.get_similar_datasets(
+        target_dataset_id=dataset.id, 
+        field_type='affiliation'
+    )
+    # --- FIN: LÓGICA DE RECOMENDACIONES ---
+
+    return render_template(
+        "dataset/view_dataset.html", 
+        dataset=dataset,
+        recs_general=recs_general,
+        recs_authors=recs_authors,
+        recs_tags=recs_tags,
+        recs_affiliation=recs_affiliation
+    )

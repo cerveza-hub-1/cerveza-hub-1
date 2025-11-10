@@ -6,7 +6,7 @@ astutils==0.0.6
 attrs==25.3.0
 Authlib==1.6.1
 autoflake==2.3.1
-beautifulsoup4==4.13.4
+beautifulsoup4==4.13.4 
 bidict==0.23.1
 black==25.1.0
 bleach==6.2.0
@@ -20,6 +20,7 @@ cffi==1.17.1
 charset-normalizer==3.4.2
 click==8.2.1
 ConfigArgParse==1.7.1
+contractions
 coverage==7.10.1
 cryptography==45.0.5
 dd==0.5.7
@@ -73,8 +74,10 @@ msgpack==1.1.1
 msgspec==0.19.0
 mypy_extensions==1.1.0
 networkx==3.5
+nltk 
 outcome==1.3.0.post0
 packaging==25.0
+pandas 
 pathspec==0.12.1
 pillow==11.3.0
 platformdirs==4.3.8
@@ -106,6 +109,7 @@ referencing==0.36.2
 requests==2.32.4
 rpds-py==0.26.0
 rq==2.4.1
+scikit-learn # <-- Añadido para TF-IDF y Similitud Coseno
 selenium==4.34.2
 selenium-wire==5.1.0
 setuptools==80.9.0
@@ -114,6 +118,7 @@ six==1.17.0
 sniffio==1.3.1
 sortedcontainers==2.4.0
 soupsieve==2.7
+spacy # <-- Añadido para noun chunks
 SQLAlchemy==2.0.42
 SQLAlchemy-Utils==0.41.2
 trio==0.30.0
@@ -128,6 +133,7 @@ webencodings==0.5.1
 websocket-client==1.8.0
 Werkzeug==3.1.3
 wheel==0.45.1
+whoosh 
 wsproto==1.2.0
 WTForms==3.2.1
 zope.event==5.1.1
