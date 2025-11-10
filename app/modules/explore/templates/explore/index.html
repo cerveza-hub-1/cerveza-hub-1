@@ -48,12 +48,68 @@
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label" for="query">
-                                    Search for datasets by title, description, authors, tags, UVL files...
+                                    Search for datasets by title
                                 </label>
                                 <input class="form-control" id="query" name="query" required="" type="text"
                                        value="" autofocus>
                             </div>
                         </div>
+
+
+                        <!-- 🔽 BOTONES PARA MOSTRAR/OCULTAR FILTROS ADICIONALES -->
+                        <div class="mb-3">
+                        <button id="show-more-filters" type="button" class="btn btn-sm btn-outline-secondary w-100">
+                            Show more filters ▾
+                        </button>
+                        <button id="hide-more-filters" type="button" class="btn btn-sm btn-outline-secondary w-100" style="display: none;">
+                            Hide filters ▴
+                        </button>
+                        </div>
+
+                        <!-- 🔽 BLOQUE DE FILTROS EXTRA -->
+                        <div id="extra-filters" class="card card-body mt-2" style="display: none;">
+                        <div class="mb-3">
+                            <label for="filter_description" class="form-label">Description</label>
+                            <input id="filter_description" name="description" type="text" class="form-control" placeholder="Dataset description...">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="filter_authors" class="form-label">Authors</label>
+                            <input id="filter_authors" name="authors" type="text" class="form-control" placeholder="Author name...">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="filter_affiliation" class="form-label">Affiliation</label>
+                            <input id="filter_affiliation" name="affiliation" type="text" class="form-control" placeholder="Institution...">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="filter_orcid" class="form-label">ORCID</label>
+                            <input id="filter_orcid" name="orcid" type="text" class="form-control" placeholder="0000-0000-0000-0000">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="filter_csv_filename" class="form-label">CSV filename</label>
+                            <input id="filter_csv_filename" name="csv_filename" type="text" class="form-control" placeholder="Filename...">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="filter_csv_title" class="form-label">CSV title</label>
+                            <input id="filter_csv_title" name="csv_title" type="text" class="form-control" placeholder="CSV title...">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="filter_publication_doi" class="form-label">Publication DOI</label>
+                            <input id="filter_publication_doi" name="publication_doi" type="text" class="form-control" placeholder="doi:10.xxxx/xxxxx">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="filter_tags" class="form-label">Tags</label>
+                            <input id="filter_tags" name="tags" type="text" class="form-control" placeholder="tag1, tag2, tag3">
+                        </div>
+                        </div>
+
+
 
                         <div class="col-lg-6">
                             <div class="mb-3">
