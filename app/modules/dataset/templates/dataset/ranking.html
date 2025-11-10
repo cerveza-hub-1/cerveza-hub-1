@@ -1,0 +1,178 @@
+{% extends "base_template.html" %}
+
+{% block title %}Dataset Ranking{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+	<div class="col">
+		<h1 class="h3" style="text-align: center;">Dataset rankings</h1>
+	</div>
+	<div class="col-auto d-flex align-items-center">
+		<button id="refresh-btn" class="btn btn-sm btn-outline-primary">Refresh</button>
+	</div>
+  
+</div>
+
+<div class="row g-3">
+	<div class="col-12 col-lg-6">
+		<div class="card h-100">
+			<div class="card-header">
+				<h5 class="card-title mb-0">DOWNLOADS</h5>
+			</div>
+			<div class="card-body">
+				<div id="downloads-loading" class="text-center py-3">
+					<div class="spinner-border text-primary" role="status"></div>
+					<div class="small text-muted mt-2">Loading ranking…</div>
+				</div>
+
+				<div id="downloads-empty" class="alert alert-info d-none">No download data available.</div>
+				<div id="downloads-error" class="alert alert-danger d-none">Failed to load downloads ranking.</div>
+
+				<div class="table-responsive">
+					<table class="table table-sm align-middle mb-0" id="downloads-table">
+						<thead>
+							<tr>
+								<th style="width: 64px;">Rank</th>
+								<th>Title</th>
+								<th class="text-end" style="width: 110px;">Downloads</th>
+								<th class="text-end" style="width: 110px;">Actions</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-12 col-lg-6">
+		<div class="card h-100">
+			<div class="card-header">
+				<h5 class="card-title mb-0">VIEWS</h5>
+			</div>
+			<div class="card-body">
+				<div id="views-loading" class="text-center py-3">
+					<div class="spinner-border text-primary" role="status"></div>
+					<div class="small text-muted mt-2">Loading ranking…</div>
+				</div>
+
+				<div id="views-empty" class="alert alert-info d-none">No view data available.</div>
+				<div id="views-error" class="alert alert-danger d-none">Failed to load views ranking.</div>
+
+				<div class="table-responsive">
+					<table class="table table-sm align-middle mb-0" id="views-table">
+						<thead>
+							<tr>
+								<th style="width: 64px;">Rank</th>
+								<th>Title</th>
+								<th class="text-end" style="width: 110px;">Views</th>
+								<th class="text-end" style="width: 110px;">Actions</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+	(function () {
+		const downloadsUrl = "{{ url_for('dataset.get_most_downloaded_datasets') }}";
+		const viewsUrl = "{{ url_for('dataset.get_most_viewed_datasets') }}";
+
+		const refreshBtn = document.getElementById('refresh-btn');
+
+		function safeText(text) {
+			return (text ?? '').toString();
+		}
+
+			function posHtml(rank) {
+				if (rank === 1) return '<span class="badge" ;color:#000"> <img src ="{{ url_for("static", filename="img/icons/gold-medal.png") }}" alt="Gold Medal" style="width: 30px; height: 30px;"></span>';
+				if (rank === 2) return '<span class="badge" ;color:#000"> <img src ="{{ url_for("static", filename="img/icons/silver-medal.png") }}" alt="Silver Medal" style="width: 30px; height: 30px;"></span>';
+				if (rank === 3) return '<span class="badge" ;color:#fff"> <img src ="{{ url_for("static", filename="img/icons/bronze-medal.png") }}" alt="Bronze Medal" style="width: 30px; height: 30px;"></span>';
+				return `<span class="badge bg-secondary">#${rank}</span>`;
+			}
+
+			function rowHtml(rank, item, metricKey) {
+			const value = item[metricKey] ?? 0;
+			const title = safeText(item.title);
+			const id = item.id;
+			const downloadHref = `/dataset/download/${id}`;
+			return `
+				<tr>
+						<td>${posHtml(rank)}</td>
+					<td>${title}</td>
+					<td class="text-end fw-semibold">${value}</td>
+					<td class="text-end">
+						<a href="${downloadHref}" class="btn btn-sm btn-outline-primary">Download</a>
+					</td>
+				</tr>
+			`;
+		}
+
+		async function loadRanking({ url, tableId, loadingId, emptyId, errorId, metricKey }) {
+			const tableBody = document.querySelector(`#${tableId} tbody`);
+			const loading = document.getElementById(loadingId);
+			const empty = document.getElementById(emptyId);
+			const error = document.getElementById(errorId);
+
+			// Reset states
+			loading.classList.remove('d-none');
+			empty.classList.add('d-none');
+			error.classList.add('d-none');
+			tableBody.innerHTML = '';
+
+			try {
+				const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+				if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+				const data = await resp.json();
+
+				if (!Array.isArray(data) || data.length === 0) {
+					empty.classList.remove('d-none');
+					return;
+				}
+
+				const rows = data.map((item, idx) => rowHtml(idx + 1, item, metricKey)).join('');
+				tableBody.innerHTML = rows;
+			} catch (e) {
+				console.error('Error loading ranking', url, e);
+				error.classList.remove('d-none');
+			} finally {
+				loading.classList.add('d-none');
+			}
+		}
+
+		async function refreshAll() {
+			await Promise.all([
+				loadRanking({
+					url: downloadsUrl,
+					tableId: 'downloads-table',
+					loadingId: 'downloads-loading',
+					emptyId: 'downloads-empty',
+					errorId: 'downloads-error',
+					metricKey: 'downloads'
+				}),
+				loadRanking({
+					url: viewsUrl,
+					tableId: 'views-table',
+					loadingId: 'views-loading',
+					emptyId: 'views-empty',
+					errorId: 'views-error',
+					metricKey: 'views'
+				})
+			]);
+		}
+
+		refreshBtn?.addEventListener('click', refreshAll);
+
+		// Initial load
+		refreshAll();
+	})();
+</script>
+{% endblock %}
+
