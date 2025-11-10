@@ -72,7 +72,7 @@ chico sundermann">
                 </li>
 
                 <li class="sidebar-item {{ 'active' if request.endpoint == 'dataset.ranking' else '' }}">
-                    <a class="sidebar-link">
+                    <a class="sidebar-link" href="{{ url_for('dataset.ranking') }}">
                         <i class="align-middle" data-feather="bar-chart-2"></i> <span
                             class="align-middle">Ranking</span>
                     </a>
