@@ -94,16 +94,7 @@ class RecommendationEngine:
 
                 raw_combined_text = ' '.join(filter(None, text_components_raw))
 
-                # --- DEBUG: Ver el texto ANTES del PLN ---
-                logger.debug("---------------------------------")
-                logger.debug(f"DEBUG (Motor): Texto RAW para DS {ds.id}: {raw_combined_text[:300]}...")
-                # -------------------------------------------
-
                 full_text_processed = nlp_utils.proceso_contenido_completo(raw_combined_text)
-
-                # --- DEBUG: Ver el texto DESPUÉS del PLN ---
-                logger.debug(f"DEBUG (Motor): Texto PROCESADO para DS {ds.id}: {full_text_processed[:300]}...")
-                # -------------------------------------------
 
                 corpus_data.append({
                     'dataset_id': ds.id,
@@ -232,15 +223,9 @@ class DataSetService(BaseService):
         Calcula y devuelve los N datasets más similares al dataset target
         basándose en el tipo de campo especificado ('authors', 'tags', 'affiliation', o 'full_text_corpus').
         """
-        
-        # --- DEBUG: Ver qué se está solicitando ---
-        logger.debug(f"--- INICIO: Búsqueda de similitud para ID: {target_dataset_id} (Campo: {field_type}) ---")
-        # ------------------------------------------
 
-        # Forzamos top_n a 5 como se solicitó
         top_n = 5
 
-        # Carga perezosa del motor en la primera solicitud
         engine = self._get_or_create_engine()
 
         # 1. Validar y seleccionar el modelo (TF-IDF)
@@ -256,7 +241,6 @@ class DataSetService(BaseService):
             logger.warning("Motor de recomendación no entrenado o DataFrame vacío. Devolviendo [].")
             return []
 
-        # 2. Obtener el índice del dataset en el que estas
         try:
             target_index = df.index[df['dataset_id'] == target_dataset_id].tolist()
         except KeyError:
@@ -269,28 +253,14 @@ class DataSetService(BaseService):
 
         target_idx = target_index[0]
 
-        # 3. Calcular la similitud del coseno
         cosine_sim = cosine_similarity(
             model['matrix'][target_idx], model['matrix']
         ).flatten()
-        
-        # --- DEBUG: Ver las puntuaciones calculadas ---
-        sorted_scores_indices = cosine_sim.argsort()[::-1] # Índices ordenados de mayor a menor
-        top_scores = [cosine_sim[i] for i in sorted_scores_indices[:top_n+1]]
-        logger.debug(f"DEBUG (Servicio): Puntuaciones de similitud (Top {top_n+1}): {top_scores}")
-        # ----------------------------------------------
 
-        # 4. Obtener los índices de los N datasets más similares (ordenados)
         similar_indices = cosine_sim.argsort()[:-top_n - 1:-1]
-        
-        # --- DEBUG: Ver los índices seleccionados ---
-        logger.debug(f"DEBUG (Servicio): Índices Top {top_n+1} (incluye self): {similar_indices}")
-        # -------------------------------------------
 
-        # 5. Construir la lista de resultados
         recommendations = []
         for i in similar_indices:
-            # Omitir el dataset target
             if i == target_idx:
                 continue
 
@@ -299,10 +269,6 @@ class DataSetService(BaseService):
                 'title': df.iloc[i]['title'],
                 'similarity_score': round(cosine_sim[i], 4)
             })
-            
-            # --- DEBUG: Ver la recomendación final ---
-            logger.debug(f"DEBUG (Servicio): -> Recomendación: ID {df.iloc[i]['dataset_id']} (Score: {round(cosine_sim[i], 4)})")
-            # -----------------------------------------
 
         return recommendations
 
@@ -342,7 +308,6 @@ class DataSetService(BaseService):
 
     def count_feature_models(self):
         """Cuenta el total de modelos de características."""
-        # Asumiendo que 'feature_model_service' es un error y debe usar el repositorio
         return self.feature_model_repository.count()
 
     def count_authors(self) -> int:
