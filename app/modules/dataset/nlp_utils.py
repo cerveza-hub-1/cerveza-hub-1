@@ -7,7 +7,8 @@ import contractions
 import spacy
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from nltk import pos_tag
-from nltk.corpus import stopwords, wordnet as wn
+from nltk.corpus import stopwords
+from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
