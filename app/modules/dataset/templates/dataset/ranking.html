@@ -102,11 +102,17 @@
 			const value = item[metricKey] ?? 0;
 			const title = safeText(item.title);
 			const id = item.id;
+			let doi = item.doi;
+
+			// If DOI available, link to public DOI view. Otherwise, fallback to dataset unsynchronized view by id.
+			const titleHtml = doi
+				? `<a href="/doi/${encodeURIComponent(doi)}" target="_blank" rel="noopener noreferrer">${title}</a>`
+				: `<a href="/dataset/unsynchronized/${id}/" target="_blank" rel="noopener noreferrer">${title}</a>`;
 			const downloadHref = `/dataset/download/${id}`;
 			return `
 				<tr>
 						<td>${posHtml(rank)}</td>
-					<td>${title}</td>
+					<td>${titleHtml}</td>
 					<td class="text-end fw-semibold">${value}</td>
 					<td class="text-end">
 						<a href="${downloadHref}" class="btn btn-sm btn-outline-primary">Download</a>

@@ -107,6 +107,7 @@ class DataSetService(BaseService):
             db.session.query(
                 DataSet.id,
                 DSMetaData.title.label("title"),
+                DSMetaData.dataset_doi.label("doi"),
                 func.coalesce(downloads_subq.c.downloads, 0).label("downloads"),
             )
             .join(DSMetaData, DataSet.ds_meta_data_id == DSMetaData.id)
@@ -116,7 +117,10 @@ class DataSetService(BaseService):
             .all()
         )
 
-        return [{"id": ds.id, "title": ds.title, "downloads": ds.downloads} for ds in ranking]
+        return [
+            {"id": ds.id, "title": ds.title, "downloads": ds.downloads, "doi": ds.doi}
+            for ds in ranking
+        ]
 
     def get_most_viewed_datasets(self, limit=10):
         """
@@ -137,7 +141,10 @@ class DataSetService(BaseService):
         # Obtener ranking por vistas
         ranking = (
             db.session.query(
-                DataSet.id, DSMetaData.title.label("title"), func.coalesce(views_subq.c.views, 0).label("views")
+                DataSet.id,
+                DSMetaData.title.label("title"),
+                DSMetaData.dataset_doi.label("doi"),
+                func.coalesce(views_subq.c.views, 0).label("views"),
             )
             .join(DSMetaData, DataSet.ds_meta_data_id == DSMetaData.id)
             .outerjoin(views_subq, views_subq.c.dataset_id == DataSet.id)
@@ -146,7 +153,10 @@ class DataSetService(BaseService):
             .all()
         )
 
-        return [{"id": ds.id, "title": ds.title, "views": ds.views} for ds in ranking]
+        return [
+            {"id": ds.id, "title": ds.title, "views": ds.views, "doi": ds.doi}
+            for ds in ranking
+        ]
 
     def total_dataset_downloads(self) -> int:
         return self.dsdownloadrecord_repository.total_dataset_downloads()
