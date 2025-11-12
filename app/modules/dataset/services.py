@@ -117,10 +117,7 @@ class DataSetService(BaseService):
             .all()
         )
 
-        return [
-            {"id": ds.id, "title": ds.title, "downloads": ds.downloads, "doi": ds.doi}
-            for ds in ranking
-        ]
+        return [{"id": ds.id, "title": ds.title, "downloads": ds.downloads, "doi": ds.doi} for ds in ranking]
 
     def get_most_viewed_datasets(self, limit=10):
         """
@@ -153,10 +150,7 @@ class DataSetService(BaseService):
             .all()
         )
 
-        return [
-            {"id": ds.id, "title": ds.title, "views": ds.views, "doi": ds.doi}
-            for ds in ranking
-        ]
+        return [{"id": ds.id, "title": ds.title, "views": ds.views, "doi": ds.doi} for ds in ranking]
 
     def total_dataset_downloads(self) -> int:
         return self.dsdownloadrecord_repository.total_dataset_downloads()
