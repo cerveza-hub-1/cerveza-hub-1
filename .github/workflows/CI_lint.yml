@@ -9,7 +9,7 @@ name: Python Lint
 on:
   push:
     branches:
-      - 'feature_task_*'   # Se ejecuta en cualquier rama de feature
+      - 'feature_*'   # Se ejecuta en cualquier rama de feature
       - 'trunk'            # También en trunk para validación final
       - 'main'             # Ahora también en main
 
