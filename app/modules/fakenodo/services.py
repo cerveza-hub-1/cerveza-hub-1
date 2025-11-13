@@ -27,12 +27,9 @@ class FakenodoService(BaseService):
             "creators": [{"name": "John Doe"}],
         }
 
-        record = self.repository.create({
-            "meta": metadata,
-            "doi": None,
-            "published": False,
-            "created_at": datetime.utcnow()
-        })
+        record = self.repository.create(
+            {"meta": metadata, "doi": None, "published": False, "created_at": datetime.utcnow()}
+        )
 
         if not record:
             success = False
@@ -48,19 +45,14 @@ class FakenodoService(BaseService):
         return jsonify({"success": success, "messages": messages})
 
     def create_record(self, metadata: dict) -> dict:
-        record = self.repository.create(
-            meta=metadata,
-            doi=None,
-            published=False,
-            created_at=datetime.utcnow()
-        )
+        record = self.repository.create(meta=metadata, doi=None, published=False, created_at=datetime.utcnow())
 
         return {
             "id": record.id,
             "meta": record.meta,
             "doi": record.doi,
             "published": record.published,
-            "created_at": record.created_at.isoformat()
+            "created_at": record.created_at.isoformat(),
         }
 
     def publish_record(self, record_id: int, files: list[str]) -> dict:
@@ -71,16 +63,8 @@ class FakenodoService(BaseService):
             record.published = True
             self.repository.update(record.id, doi=record.doi, published=True)
 
-        return {
-            "id": record.id,
-            "doi": record.doi,
-            "published": record.published
-        }
+        return {"id": record.id, "doi": record.doi, "published": record.published}
 
     def list_versions(self, record_id: int) -> list[dict]:
         record = self.repository.get_or_404(record_id)
-        return [{
-            "id": record.id,
-            "doi": record.doi,
-            "published": record.published
-        }]
+        return [{"id": record.id, "doi": record.doi, "published": record.published}]
