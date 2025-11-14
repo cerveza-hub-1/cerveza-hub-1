@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 CorpusRecord = Dict[str, any]
 
-INDEXABLE_FIELDS = ['authors', 'tags', 'affiliation']
+INDEXABLE_FIELDS = ["authors", "tags", "affiliation"]
 
 
 class RecommendationEngine:
@@ -50,8 +50,8 @@ class RecommendationEngine:
     def __init__(self, app_instance):
         self.app = app_instance
         self.df = pd.DataFrame()
-        self.models = {}  
-        self.whoosh_indices = {}  
+        self.models = {}
+        self.whoosh_indices = {}
         self.tfidf_matrix = None
         self.tfidf_vectorizer = None
         self._initialize_engine()
@@ -81,7 +81,7 @@ class RecommendationEngine:
                     if author.affiliation:
                         affiliation_names.append(author.affiliation.lower())
 
-                tags_list = [tag.strip().lower() for tag in metadata.tags.split(',') if metadata.tags]
+                tags_list = [tag.strip().lower() for tag in metadata.tags.split(",") if metadata.tags]
 
                 text_components_raw = [
                     metadata.title,
@@ -92,20 +92,22 @@ class RecommendationEngine:
                     " ".join(tags_list),
                 ]
 
-                raw_combined_text = ' '.join(filter(None, text_components_raw))
+                raw_combined_text = " ".join(filter(None, text_components_raw))
 
                 full_text_processed = nlp_utils.proceso_contenido_completo(raw_combined_text)
 
-                corpus_data.append({
-                    'dataset_id': ds.id,
-                    'title': metadata.title,
-                    'description': metadata.description,
-                    'authors': " ".join(authors_names),
-                    'affiliation': " ".join(affiliation_names),
-                    'tags': " ".join(tags_list),
-                    'dataset_doi': metadata.dataset_doi,
-                    'full_text_corpus': full_text_processed
-                })
+                corpus_data.append(
+                    {
+                        "dataset_id": ds.id,
+                        "title": metadata.title,
+                        "description": metadata.description,
+                        "authors": " ".join(authors_names),
+                        "affiliation": " ".join(affiliation_names),
+                        "tags": " ".join(tags_list),
+                        "dataset_doi": metadata.dataset_doi,
+                        "full_text_corpus": full_text_processed,
+                    }
+                )
 
         logger.info(f"Corpus extraction complete. {len(corpus_data)} records retrieved.")
         return corpus_data
@@ -120,14 +122,13 @@ class RecommendationEngine:
 
         os.makedirs(index_dir, exist_ok=True)
 
-        schema = Schema(doc_id=ID(stored=True, unique=True),
-                        content=TEXT(stored=True, analyzer=StemmingAnalyzer()))
+        schema = Schema(doc_id=ID(stored=True, unique=True), content=TEXT(stored=True, analyzer=StemmingAnalyzer()))
 
         ix = create_in(index_dir, schema)
         writer = ix.writer()
 
         for i, text in enumerate(self.df[field_name].tolist()):
-            dataset_id = str(self.df.iloc[i]['dataset_id'])
+            dataset_id = str(self.df.iloc[i]["dataset_id"])
             writer.add_document(doc_id=dataset_id, content=text)
 
         writer.commit()
@@ -136,32 +137,20 @@ class RecommendationEngine:
     def _train_and_index_models(self):
         """Entrena modelos TF-IDF para el corpus completo y crea índices Whoosh para campos específicos."""
 
-        if self.df.empty or 'full_text_corpus' not in self.df.columns:
+        if self.df.empty or "full_text_corpus" not in self.df.columns:
             logger.warning("DataFrame está vacío o falta 'full_text_corpus'. Saltando entrenamiento.")
             return
 
-        vectorizer = TfidfVectorizer(
-            tokenizer=lambda x: x.split(),  
-            preprocessor=lambda x: x,      
-            stop_words=None                
-        )
-        matrix = vectorizer.fit_transform(self.df['full_text_corpus'])
+        vectorizer = TfidfVectorizer(tokenizer=lambda x: x.split(), preprocessor=lambda x: x, stop_words=None)
+        matrix = vectorizer.fit_transform(self.df["full_text_corpus"])
 
-        self.models['full_text_corpus'] = {
-            'vectorizer': vectorizer,
-            'matrix': matrix
-        }
+        self.models["full_text_corpus"] = {"vectorizer": vectorizer, "matrix": matrix}
 
         for field in INDEXABLE_FIELDS:
-            field_vectorizer = TfidfVectorizer(
-                token_pattern=r'\b\w+\b'  
-            )
+            field_vectorizer = TfidfVectorizer(token_pattern=r"\b\w+\b")
             field_matrix = field_vectorizer.fit_transform(self.df[field])
 
-            self.models[field] = {
-                'vectorizer': field_vectorizer,
-                'matrix': field_matrix
-            }
+            self.models[field] = {"vectorizer": field_vectorizer, "matrix": field_matrix}
 
             whoosh_ix = self._create_whoosh_index(field)
             self.whoosh_indices[field] = whoosh_ix
@@ -175,13 +164,14 @@ class RecommendationEngine:
         if corpus:
             self.df = pd.DataFrame(corpus)
             self._train_and_index_models()
-            
+
     def force_retrain(self):
         """
         Forza un re-entrenamiento completo del motor de recomendación.
         Esto recarga todos los datasets de la base de datos.
         """
-        self._initialize_engine() 
+        self._initialize_engine()
+
 
 def calculate_checksum_and_size(file_path):
     """Calcula el checksum MD5 y el tamaño de un archivo."""
@@ -197,8 +187,8 @@ class DataSetService(BaseService):
     Servicio para gestionar la lógica de negocio de los DataSets.
     Incluye la inicialización perezosa del motor de recomendación.
     """
-    
-    _recommendation_engine: Optional['RecommendationEngine'] = None
+
+    _recommendation_engine: Optional["RecommendationEngine"] = None
 
     def __init__(self):
         super().__init__(DataSetRepository())
@@ -212,20 +202,21 @@ class DataSetService(BaseService):
         self.dsviewrecord_repostory = DSViewRecordRepository()
         self.hubfileviewrecord_repository = HubfileViewRecordRepository()
 
-    def _get_or_create_engine(self) -> 'RecommendationEngine':
+    def _get_or_create_engine(self) -> "RecommendationEngine":
         """
         Cargador perezoso (Lazy loader) para el singleton del RecommendationEngine.
         Esto evita la importación circular durante el inicio de la app.
         """
         if DataSetService._recommendation_engine is None:
             from app import app as flask_app_instance
+
             logger.info("Inicializando RecommendationEngine (singleton)...")
             DataSetService._recommendation_engine = RecommendationEngine(flask_app_instance)
         return DataSetService._recommendation_engine
 
-    def get_similar_datasets(self, target_dataset_id: int,
-                             field_type: str = 'full_text_corpus',
-                             top_n: int = 5) -> List[Dict]:
+    def get_similar_datasets(
+        self, target_dataset_id: int, field_type: str = "full_text_corpus", top_n: int = 5
+    ) -> List[Dict]:
         """
         Calcula y devuelve los N datasets más similares al dataset target
         basándose en el tipo de campo especificado ('authors', 'tags', 'affiliation', o 'full_text_corpus').
@@ -238,7 +229,7 @@ class DataSetService(BaseService):
         valid_fields = list(engine.models.keys())
         if field_type not in valid_fields:
             logger.warning(f"Field type '{field_type}' not found in models. Using default: 'full_text_corpus'.")
-            field_type = 'full_text_corpus'
+            field_type = "full_text_corpus"
 
         model = engine.models.get(field_type)
         df = engine.df
@@ -248,34 +239,34 @@ class DataSetService(BaseService):
             return []
 
         try:
-            target_index = df.index[df['dataset_id'] == target_dataset_id].tolist()
+            target_index = df.index[df["dataset_id"] == target_dataset_id].tolist()
         except KeyError:
             logger.error("Columna 'dataset_id' no encontrada en el DataFrame del motor.")
             return []
-            
+
         if not target_index:
             logger.warning(f"Dataset ID {target_dataset_id} no encontrado en el motor. Devolviendo [].")
             return []
 
         target_idx = target_index[0]
 
-        cosine_sim = cosine_similarity(
-            model['matrix'][target_idx], model['matrix']
-        ).flatten()
+        cosine_sim = cosine_similarity(model["matrix"][target_idx], model["matrix"]).flatten()
 
-        similar_indices = cosine_sim.argsort()[:-top_n - 1:-1]
+        similar_indices = cosine_sim.argsort()[: -top_n - 1 : -1]
 
         recommendations = []
         for i in similar_indices:
             if i == target_idx:
                 continue
 
-            recommendations.append({
-                'dataset_id': df.iloc[i]['dataset_id'],
-                'title': df.iloc[i]['title'],
-                'similarity_score': round(cosine_sim[i], 4),
-                'dataset_doi': df.iloc[i]['dataset_doi']
-            })
+            recommendations.append(
+                {
+                    "dataset_id": df.iloc[i]["dataset_id"],
+                    "title": df.iloc[i]["title"],
+                    "similarity_score": round(cosine_sim[i], 4),
+                    "dataset_doi": df.iloc[i]["dataset_doi"],
+                }
+            )
 
         return recommendations
 
@@ -329,7 +320,6 @@ class DataSetService(BaseService):
         """Obtiene el total de descargas de datasets."""
         return self.dsdownloadrecord_repository.total_dataset_downloads()
 
-
     def total_dataset_views(self) -> int:
         """Obtiene el total de vistas de datasets."""
         return self.dsviewrecord_repostory.total_dataset_views()
@@ -382,7 +372,7 @@ class DataSetService(BaseService):
         except Exception as e:
             # No fallar la creación del dataset si el motor falla, solo registrarlo
             logger.error(f"FALLO al re-entrenar el motor de recomendación: {e}")
-            
+
         return dataset
 
     def update_dsmetadata(self, ds_id, **kwargs):
@@ -397,18 +387,21 @@ class DataSetService(BaseService):
 
 class AuthorService(BaseService):
     """Servicio para la lógica de negocio de Autores."""
+
     def __init__(self):
         super().__init__(AuthorRepository())
 
 
 class DSDownloadRecordService(BaseService):
     """Servicio para la lógica de negocio de Registros de Descarga."""
+
     def __init__(self):
         super().__init__(DSDownloadRecordRepository())
 
 
 class DSMetaDataService(BaseService):
     """Servicio para la lógica de negocio de MetaData de DataSets."""
+
     def __init__(self):
         super().__init__(DSMetaDataRepository())
 
@@ -423,6 +416,7 @@ class DSMetaDataService(BaseService):
 
 class DSViewRecordService(BaseService):
     """Servicio para la lógica de negocio de Vistas de DataSets."""
+
     def __init__(self):
         super().__init__(DSViewRecordRepository())
 
@@ -451,6 +445,7 @@ class DSViewRecordService(BaseService):
 
 class DOIMappingService(BaseService):
     """Servicio para la lógica de negocio de Mapeo de DOIs."""
+
     def __init__(self):
         super().__init__(DOIMappingRepository())
 
@@ -459,7 +454,7 @@ class DOIMappingService(BaseService):
         doi_mapping = self.repository.get_new_doi(old_doi)
         if doi_mapping:
             return doi_mapping.dataset_doi_new
-        
+
         return None
 
 
@@ -477,5 +472,5 @@ class SizeService:
             return f"{round(size / 1024, 2)} KB"
         if size < 1024**3:
             return f"{round(size / (1024 ** 2), 2)} MB"
-        
+
         return f"{round(size / (1024 ** 3), 2)} GB"
