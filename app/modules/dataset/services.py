@@ -175,7 +175,13 @@ class RecommendationEngine:
         if corpus:
             self.df = pd.DataFrame(corpus)
             self._train_and_index_models()
-
+            
+    def force_retrain(self):
+        """
+        Forza un re-entrenamiento completo del motor de recomendación.
+        Esto recarga todos los datasets de la base de datos.
+        """
+        self._initialize_engine() 
 
 def calculate_checksum_and_size(file_path):
     """Calcula el checksum MD5 y el tamaño de un archivo."""
@@ -368,6 +374,15 @@ class DataSetService(BaseService):
             logger.info("Exception creating dataset from form...: %s", exc)
             self.repository.session.rollback()
             raise exc
+        try:
+            logger.info("Nuevo dataset creado. Re-entrenando el motor de recomendación...")
+            engine = self._get_or_create_engine()
+            engine.force_retrain()
+            logger.info("Motor de recomendación re-entrenado.")
+        except Exception as e:
+            # No fallar la creación del dataset si el motor falla, solo registrarlo
+            logger.error(f"FALLO al re-entrenar el motor de recomendación: {e}")
+            
         return dataset
 
     def update_dsmetadata(self, ds_id, **kwargs):
