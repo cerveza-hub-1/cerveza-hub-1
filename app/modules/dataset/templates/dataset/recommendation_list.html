@@ -7,12 +7,12 @@
     {% for rec in recommendations %}
         <li class="list-group-item d-flex justify-content-between align-items-center ps-0 pe-0">
             <div>
-                <i data-feather="file-text" class="me-2 text-secondary" style="width: 18px; height: 18px;"></i>
-                <!-- 
-                  Usamos un enlace relativo. Si la URL actual es /dataset/123,
-                  esto enlazará a /dataset/456
-                -->
-                <a href="../{{ rec.dataset_id }}">{{ rec.title }}</a>
+                <i data-feather="file-text" class="me-2 text-secondary" style="width: 18px; height: 18px;"></i>                
+                {% if rec.dataset_doi %}
+                    <a href="{{ url_for('dataset.subdomain_index', doi=rec.dataset_doi) }}">{{ rec.title }}</a>
+                {% else %}
+                    <a href="{{ url_for('dataset.get_unsynchronized_dataset', dataset_id=rec.dataset_id) }}">{{ rec.title }}</a>
+                {% endif %}
             </div>
             <span class="badge bg-primary rounded-pill">
                 {{ "%.1f"|format(rec.similarity_score * 100) }}%

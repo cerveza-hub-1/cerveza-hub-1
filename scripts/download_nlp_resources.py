@@ -45,7 +45,7 @@ def download_spacy_models():
     usando subprocess para llamar al comando nativo de Python.
     Esto equivale a ejecutar 'python -m spacy download <modelo>'.
     """
-    print("\n⬇️ Iniciando descarga de modelos spaCy...")
+    print("\nIniciando descarga de modelos spaCy...")
 
     for model in SPACY_MODELS:
         try:

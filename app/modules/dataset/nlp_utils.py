@@ -60,20 +60,6 @@ def lematizador(contenido: List[str]) -> List[str]:
             
     return resultado
 
-def extraer_noun_chunks(tokens: List[str]) -> List[str]:
-    """
-    Extrae frases nominales (noun chunks) usando spaCy y las añade a los tokens.
-    """
-    if nlp is None:
-        return tokens 
-
-    doc = nlp(" ".join(tokens))
-    
-    # Extraer chunks
-    noun_chunks = [chunk.text.lower().strip() for chunk in doc.noun_chunks if len(chunk.text.split()) <= 3]
-    
-    return tokens + noun_chunks
-
 def expand_term(term: str) -> set:
     """Encuentra sinónimos de un término usando WordNet."""
     related = set()
@@ -117,7 +103,6 @@ def proceso_contenido_completo(texto: str) -> str:
     tokens = elimina_palabras_vacias(tokens)
     tokens = lematizador(tokens)
     
-    tokens = extraer_noun_chunks(tokens)
     tokens = expand_corpus_with_synonyms(tokens)
     
     return " ".join(tokens)

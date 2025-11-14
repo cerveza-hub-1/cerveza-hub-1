@@ -103,6 +103,7 @@ class RecommendationEngine:
                     'authors': " ".join(authors_names),
                     'affiliation': " ".join(affiliation_names),
                     'tags': " ".join(tags_list),
+                    'dataset_doi': metadata.dataset_doi,
                     'full_text_corpus': full_text_processed
                 })
 
@@ -228,7 +229,6 @@ class DataSetService(BaseService):
 
         engine = self._get_or_create_engine()
 
-        # 1. Validar y seleccionar el modelo (TF-IDF)
         valid_fields = list(engine.models.keys())
         if field_type not in valid_fields:
             logger.warning(f"Field type '{field_type}' not found in models. Using default: 'full_text_corpus'.")
@@ -267,7 +267,8 @@ class DataSetService(BaseService):
             recommendations.append({
                 'dataset_id': df.iloc[i]['dataset_id'],
                 'title': df.iloc[i]['title'],
-                'similarity_score': round(cosine_sim[i], 4)
+                'similarity_score': round(cosine_sim[i], 4),
+                'dataset_doi': df.iloc[i]['dataset_doi']
             })
 
         return recommendations
