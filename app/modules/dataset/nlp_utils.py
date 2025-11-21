@@ -58,7 +58,7 @@ def lematizador(contenido: List[str]) -> List[str]:
     resultado = []
 
     for palabra, tag in pos_tags:
-        if tag.startswith("VB"):  
+        if tag.startswith("VB"):
             resultado.append(lemmatizer.lemmatize(palabra, pos="v"))
         else:
             resultado.append(palabra)
