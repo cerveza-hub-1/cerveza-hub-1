@@ -19,7 +19,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from app.modules.comment.services import CommentService 
+from app.modules.comment.services import CommentService
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.forms import DataSetForm
 from app.modules.dataset.models import DSDownloadRecord
@@ -42,7 +42,7 @@ dsmetadata_service = DSMetaDataService()
 zenodo_service = ZenodoService()
 doi_mapping_service = DOIMappingService()
 ds_view_record_service = DSViewRecordService()
-comment_service = CommentService()  
+comment_service = CommentService()
 
 
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
@@ -161,7 +161,7 @@ def upload():
 
 
 @dataset_bp.route("/dataset/file/delete", methods=["POST"])
-@login_required 
+@login_required
 def delete():
     data = request.get_json()
     filename = data.get("file")
@@ -301,7 +301,6 @@ def get_unsynchronized_dataset(dataset_id):
     )
 
 
-
 @dataset_bp.route("/dataset/<int:dataset_id>/comments", methods=["POST"])
 @login_required
 def create_comment_endpoint(dataset_id):
@@ -368,7 +367,6 @@ def delete_comment_endpoint(comment_id):
         return jsonify({"message": "Comment deleted successfully"}), 200
     except Exception:
         return jsonify({"message": "Failed to delete comment"}), 500
-
 
 
 @dataset_bp.route("/dataset/ranking", methods=["GET"])
