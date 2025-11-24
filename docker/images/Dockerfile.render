@@ -46,6 +46,8 @@ RUN pip install --no-cache-dir --upgrade pip
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
+#Instalar rosemary
+
 # Expose port 80
 EXPOSE 80
 
