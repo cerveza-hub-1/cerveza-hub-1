@@ -10,7 +10,8 @@ name: Pytest
 on:
   push:
     branches:
-      - 'feature_*'  # Validación rápida en ramas de desarrollo
+      - 'feature_*' # Validación rápida en ramas de desarrollo
+      - 'trunk' 
 
 jobs:
   pytest:
