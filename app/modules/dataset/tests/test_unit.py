@@ -1,7 +1,7 @@
 import pytest
 
-from app import create_app
 import app.modules.dataset.routes as dataset_routes
+from app import create_app
 
 
 @pytest.fixture
