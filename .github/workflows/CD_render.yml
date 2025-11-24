@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows:
       - Codacy CI
-      - Python Lint
+      - Pytest
       - Publish image in Docker Hub
     types:
       - completed
