@@ -148,30 +148,30 @@ def test_ranking_page():
 
         # Wait for JS to populate the tables (allow a little longer)
         WebDriverWait(driver, 10).until(
-            lambda d: len(d.find_elements(By.CSS_SELECTOR, '#downloads-table tbody tr')) > 0
-            or len(d.find_elements(By.CSS_SELECTOR, '#views-table tbody tr')) > 0
+            lambda d: len(d.find_elements(By.CSS_SELECTOR, "#downloads-table tbody tr")) > 0
+            or len(d.find_elements(By.CSS_SELECTOR, "#views-table tbody tr")) > 0
         )
 
         # Check downloads table has rows and the title cell contains a link
-        downloads_rows = driver.find_elements(By.CSS_SELECTOR, '#downloads-table tbody tr')
-        views_rows = driver.find_elements(By.CSS_SELECTOR, '#views-table tbody tr')
+        downloads_rows = driver.find_elements(By.CSS_SELECTOR, "#downloads-table tbody tr")
+        views_rows = driver.find_elements(By.CSS_SELECTOR, "#views-table tbody tr")
 
         assert downloads_rows or views_rows, "Ranking tables are empty"
 
         # Pick a row to assert link in title column exists
         row = downloads_rows[0] if downloads_rows else views_rows[0]
         try:
-            title_anchor = row.find_element(By.CSS_SELECTOR, 'td:nth-child(2) a')
+            title_anchor = row.find_element(By.CSS_SELECTOR, "td:nth-child(2) a")
         except Exception:
             title_anchor = None
 
         assert title_anchor is not None, "Title link not found in ranking row"
 
-        href = title_anchor.get_attribute('href')
-        ok = href and ('/doi/' in href or '/dataset/unsynchronized/' in href)
+        href = title_anchor.get_attribute("href")
+        ok = href and ("/doi/" in href or "/dataset/unsynchronized/" in href)
         assert ok, f"Unexpected href for title link: {href}"
 
-        print('Ranking page test passed')
+        print("Ranking page test passed")
 
     finally:
         close_driver(driver)
