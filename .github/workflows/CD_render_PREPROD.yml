@@ -10,7 +10,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to Render
+    name: Deploy to Render Preprod
     if: >
       ${{ github.event.workflow_run.conclusion == 'success' &&
           github.event.workflow_run.head_branch == 'trunk' }}
