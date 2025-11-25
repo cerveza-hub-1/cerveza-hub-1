@@ -45,26 +45,17 @@ class FakenodoService(BaseService):
         return jsonify({"success": success, "messages": messages})
 
     def create_record(self, metadata: dict) -> dict:
-        record = self.repository.create(meta=metadata, doi=None, published=False, created_at=datetime.utcnow())
-
-        return {
-            "id": record.id,
-            "meta": record.meta,
-            "doi": record.doi,
-            "published": record.published,
-            "created_at": record.created_at.isoformat(),
-        }
+        record = self.repository.create(meta=metadata, doi=None, published=False)
+        return record.to_dict()
 
     def publish_record(self, record_id: int, files: list[str]) -> dict:
         record = self.repository.get_or_404(record_id)
-
         if not record.published and files:
             record.doi = f"10.9999/fakenodo.{uuid.uuid4().hex[:6]}"
             record.published = True
             self.repository.update(record.id, doi=record.doi, published=True)
-
-        return {"id": record.id, "doi": record.doi, "published": record.published}
+        return record.to_dict()
 
     def list_versions(self, record_id: int) -> list[dict]:
         record = self.repository.get_or_404(record_id)
-        return [{"id": record.id, "doi": record.doi, "published": record.published}]
+        return [record.to_dict()]
