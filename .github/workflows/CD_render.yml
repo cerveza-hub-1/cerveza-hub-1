@@ -8,8 +8,6 @@ on:
       - Publish image in Docker Hub
     types:
       - completed
-    branches:
-      - 'main'
 
 jobs:
   deploy:
