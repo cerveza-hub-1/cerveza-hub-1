@@ -1,4 +1,4 @@
-name: Deploy to Render Preprod
+name: Preproduction deploy
 
 on:
   workflow_run:
@@ -7,11 +7,10 @@ on:
       - Python Lint
     types:
       - completed
-    branches: [trunk]
 
 jobs:
   deploy:
-    name: Deploy to Render Preprod
+    name: Preproduction deploy
     
     if: >
       ${{ github.event.workflow_run.conclusion == 'success' &&
