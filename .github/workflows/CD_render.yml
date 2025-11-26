@@ -1,0 +1,29 @@
+name: Deploy to Render
+
+on:
+  workflow_run:
+    # Trigger this workflow only after specified workflows complete
+    workflows:
+      - Codacy CI
+      - Python Lint
+    types:
+      - completed
+    branches:
+      - trunk
+
+jobs:
+  deploy:
+    name: Deploy to Render
+    if: github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/trunk'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render
+        env:
+          FERNET_KEY: ${{ secrets.FERNET_KEY }}
+          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl "$deploy_url"
