@@ -7,8 +7,7 @@ on:
       - Python Lint
     types:
       - completed
-    branches:
-      - ['trunk']
+    branches: [trunk]
 
 jobs:
   deploy:
