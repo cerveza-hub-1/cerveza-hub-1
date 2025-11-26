@@ -9,12 +9,12 @@ on:
     types:
       - completed
     branches:
-      - trunk
+      - main
 
 jobs:
   deploy:
     name: Deploy to Render
-    if: github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/trunk'
+    if: github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
