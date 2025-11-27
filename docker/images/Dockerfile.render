@@ -46,6 +46,9 @@ RUN pip install --no-cache-dir --upgrade pip
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
+# Descargar Descargar modelos NLTK y spaCy
+RUN python scripts/download_nlp_resources.py
+
 #Instalar rosemary
 
 # Expose port 80
