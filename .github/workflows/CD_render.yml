@@ -6,6 +6,7 @@ on:
     workflows:
       - Codacy CI
       - Python Lint
+      - Publish image in Docker Hub
     types:
       - completed
     branches:
@@ -24,6 +25,6 @@ jobs:
       - name: Deploy to Render
         env:
           FERNET_KEY: ${{ secrets.FERNET_KEY }}
-          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL_PROD }}
         run: |
           curl "$deploy_url"
