@@ -1,7 +1,7 @@
 import logging
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Response, jsonify
 
@@ -28,7 +28,7 @@ class FakenodoService(BaseService):
         }
 
         record = self.repository.create(
-            {"meta": metadata, "doi": None, "published": False, "created_at": datetime.utcnow()}
+            {"meta": metadata, "doi": None, "published": False, "created_at": datetime.now(timezone.utc)}
         )
 
         if not record:
@@ -45,17 +45,14 @@ class FakenodoService(BaseService):
         return jsonify({"success": success, "messages": messages})
 
     def create_record(self, metadata: dict) -> dict:
-        record = self.repository.create(meta=metadata, doi=None, published=False)
+        record = self.repository.create(meta=metadata)
         return record.to_dict()
 
     def publish_record(self, record_id: int, files: list[str]) -> dict:
         record = self.repository.get_or_404(record_id)
-        if not record.published and files:
-            record.doi = f"10.9999/fakenodo.{uuid.uuid4().hex[:6]}"
-            record.published = True
-            self.repository.update(record.id, doi=record.doi, published=True)
-        return record.to_dict()
+        new_version = record.add_version(meta=record.meta, files=files, published=True)
+        return new_version
 
     def list_versions(self, record_id: int) -> list[dict]:
         record = self.repository.get_or_404(record_id)
-        return [record.to_dict()]
+        return record.versions

@@ -1,31 +1,19 @@
-from datetime import datetime
+from datetime import datetime, timezone
+
 from app.modules.fakenodo.models import Fakenodo
 
 
 class FakenodoRepository:
     def __init__(self):
-        # almacenamiento en memoria
         self._records = {}
         self._counter = 1
 
-    def create(self, meta, doi=None, published=False, created_at=None):
-        record = Fakenodo(
-            id=self._counter,
-            meta=meta,
-            doi=doi,
-            published=published,
-            created_at=created_at or datetime.utcnow()
-        )
+    def create(self, meta):
+        record = Fakenodo(id=self._counter, meta=meta, created_at=datetime.now(timezone.utc))
+        # primera versión sin publicar
+        record.add_version(meta, published=False)
         self._records[self._counter] = record
         self._counter += 1
-        return record
-
-    def update(self, record_id, **kwargs):
-        record = self._records.get(record_id)
-        if not record:
-            raise KeyError(f"Record {record_id} not found")
-        for k, v in kwargs.items():
-            setattr(record, k, v)
         return record
 
     def get_or_404(self, record_id):
