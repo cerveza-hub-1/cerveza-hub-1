@@ -42,6 +42,7 @@ dsmetadata_service = DSMetaDataService()
 zenodo_service = ZenodoService()
 doi_mapping_service = DOIMappingService()
 ds_view_record_service = DSViewRecordService()
+comment_service = CommentService()
 
 
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
@@ -165,6 +166,7 @@ def upload():
 
 
 @dataset_bp.route("/dataset/file/delete", methods=["POST"])
+@login_required
 def delete():
     data = request.get_json()
     filename = data.get("file")
@@ -191,9 +193,7 @@ def download_dataset(dataset_id):
         for subdir, dirs, files in os.walk(file_path):
             for file in files:
                 full_path = os.path.join(subdir, file)
-
                 relative_path = os.path.relpath(full_path, file_path)
-
                 zipf.write(
                     full_path,
                     arcname=os.path.join(os.path.basename(zip_path[:-4]), relative_path),
@@ -201,8 +201,7 @@ def download_dataset(dataset_id):
 
     user_cookie = request.cookies.get("download_cookie")
     if not user_cookie:
-        user_cookie = str(uuid.uuid4())  # Generate a new unique identifier if it does not exist
-        # Save the cookie to the user's browser
+        user_cookie = str(uuid.uuid4())
         resp = make_response(
             send_from_directory(
                 temp_dir,
@@ -239,11 +238,9 @@ def download_dataset(dataset_id):
     return resp
 
 
-# AÑADIDO PARA COMMENT
-
-
 @dataset_bp.route("/doi/<path:doi>/", methods=["GET"])
 def subdomain_index(doi):
+
     # Check if the DOI is an old DOI
     new_doi = doi_mapping_service.get_new_doi(doi)
     if new_doi:
@@ -259,31 +256,34 @@ def subdomain_index(doi):
     # Get dataset
     dataset = ds_meta_data.data_set
 
-    # --- INICIO DE LOS CAMBIOS PARA COMENTARIOS ---
-    # 1. Obtener los comentarios del dataset
-    # Asegúrate de que 'comment_service' esté inicializado al principio del archivo routes.py
-    comments = comment_service.get_comments_for_dataset(dataset.id)
-
-    # 2. Guardar la cookie de vista al usuario
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)
 
-    # 3. Crear la respuesta, pasando los 'comments' al template
+    recs_general = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="full_text_corpus")
+    recs_authors = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="authors")
+    recs_tags = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="tags")
+    recs_affiliation = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="affiliation")
+    comments = comment_service.get_comments_for_dataset(dataset.id)
+
     resp = make_response(
         render_template(
             "dataset/view_dataset.html",
             dataset=dataset,
-            comments=comments,  # <--- Pasamos la lista de comentarios
+            recs_general=recs_general,
+            recs_authors=recs_authors,
+            recs_tags=recs_tags,
+            recs_affiliation=recs_affiliation,
+            comments=comments,
         )
     )
-    # --- FIN DE LOS CAMBIOS PARA COMENTARIOS ---
-
     resp.set_cookie("view_cookie", user_cookie)
+
     return resp
 
 
 @dataset_bp.route("/dataset/unsynchronized/<int:dataset_id>/", methods=["GET"])
 @login_required
 def get_unsynchronized_dataset(dataset_id):
+    """Muestra un dataset local (no sincronizado) del usuario actual."""
 
     # Get dataset
     dataset = dataset_service.get_unsynchronized_dataset(current_user.id, dataset_id)
@@ -291,22 +291,25 @@ def get_unsynchronized_dataset(dataset_id):
     if not dataset:
         abort(404)
 
-    return render_template("dataset/view_dataset.html", dataset=dataset)
+    recs_general = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="full_text_corpus")
+    recs_authors = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="authors")
+    recs_tags = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="tags")
+    recs_affiliation = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="affiliation")
 
-
-# AÑADIDO PARA COMMENT
-
-
-comment_service = CommentService()  # Inicializar el servicio
-
-# 1. POST para crear un comentario
+    return render_template(
+        "dataset/view_dataset.html",
+        dataset=dataset,
+        recs_general=recs_general,
+        recs_authors=recs_authors,
+        recs_tags=recs_tags,
+        recs_affiliation=recs_affiliation,
+    )
 
 
 @dataset_bp.route("/dataset/<int:dataset_id>/comments", methods=["POST"])
 @login_required
 def create_comment_endpoint(dataset_id):
     """Crea un comentario en un dataset."""
-    # Intentar leer JSON, luego fallback a form data
     data = request.get_json(silent=True)
 
     if data:
@@ -316,11 +319,8 @@ def create_comment_endpoint(dataset_id):
         content = request.form.get("content")
         parent_id = request.form.get("parent_id")
 
-    # --- CAMBIO CLAVE ---
-    # Convertir cadena vacía ('') a None para que SQLAlchemy lo interprete como NULL
     if parent_id == "":
         parent_id = None
-    # --- FIN DEL CAMBIO ---
 
     if not content:
         return jsonify({"message": "Content is required"}), 400
@@ -334,7 +334,7 @@ def create_comment_endpoint(dataset_id):
             author_id=current_user.id,
             dataset_id=dataset_id,
             content=content,
-            parent_id=parent_id,  # None o entero válido
+            parent_id=parent_id,
         )
         return jsonify(comment.to_dict()), 201
 
@@ -346,7 +346,6 @@ def create_comment_endpoint(dataset_id):
         )
 
 
-# 2. GET para listar comentarios
 @dataset_bp.route("/dataset/<int:dataset_id>/comments", methods=["GET"])
 def list_comments_endpoint(dataset_id):
     """Lista los comentarios asociados a un dataset."""
@@ -355,13 +354,12 @@ def list_comments_endpoint(dataset_id):
     return jsonify(comments_data), 200
 
 
-# 3. DELETE para moderar/eliminar (autor del dataset)
 @dataset_bp.route("/comments/<int:comment_id>", methods=["DELETE"])
 @login_required
 def delete_comment_endpoint(comment_id):
     """Permite eliminar un comentario (solo el autor del dataset)."""
     comment = comment_service.get_or_404(comment_id)
-    dataset_author_id = comment.data_set.user_id  # Asumiendo que DataSet tiene user_id
+    dataset_author_id = comment.data_set.user_id
 
     if current_user.id != dataset_author_id:
         return (
@@ -384,7 +382,7 @@ def ranking():
 
 @dataset_bp.route("/dataset/ranking/downloads", methods=["GET"])
 def get_most_downloaded_datasets():
-    """Obtiene el ranking de datasets más descargados."""
+    """Obtiene el ranking de datasets más descargados (Top 5)."""
     try:
         ranking = dataset_service.get_most_downloaded_datasets(limit=5)
         return jsonify(ranking), 200
@@ -395,7 +393,7 @@ def get_most_downloaded_datasets():
 
 @dataset_bp.route("/dataset/ranking/views", methods=["GET"])
 def get_most_viewed_datasets():
-    """Obtiene el ranking de datasets más vistos."""
+    """Obtiene el ranking de datasets más vistos (Top 5)."""
     try:
         ranking = dataset_service.get_most_viewed_datasets(limit=5)
         return jsonify(ranking), 200

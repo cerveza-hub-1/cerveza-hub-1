@@ -1,0 +1,78 @@
+2025-11-24 19:38:40,855 - app - ERROR - Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-11-27 18:54:39,195 - app - ERROR - Exception on /doi/10.1234/dataset4/ [GET]
+Traceback (most recent call last):
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask_restful/__init__.py", line 298, in error_router
+    return original_handler(e)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/routes.py", line 256, in subdomain_index
+    recs_general = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="full_text_corpus")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 214, in get_similar_datasets
+    engine = self._get_or_create_engine()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 207, in _get_or_create_engine
+    DataSetService._recommendation_engine = RecommendationEngine(flask_app_instance)
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 66, in __init__
+    self._initialize_engine()
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 172, in _initialize_engine
+    corpus = self._get_corpus_data_from_db()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 106, in _get_corpus_data_from_db
+    full_text_processed = nlp_utils.proceso_contenido_completo(raw_combined_text)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/nlp_utils.py", line 107, in proceso_contenido_completo
+    tokens = word_tokenize(texto)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/__init__.py", line 142, in word_tokenize
+    sentences = [text] if preserve_line else sent_tokenize(text, language)
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/__init__.py", line 119, in sent_tokenize
+    tokenizer = _get_punkt_tokenizer(language)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/__init__.py", line 105, in _get_punkt_tokenizer
+    return PunktTokenizer(language)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/punkt.py", line 1744, in __init__
+    self.load_lang(lang)
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/punkt.py", line 1749, in load_lang
+    lang_dir = find(f"tokenizers/punkt_tab/{lang}/")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/data.py", line 579, in find
+    raise LookupError(resource_not_found)
+LookupError: 
+**********************************************************************
+  Resource [93mpunkt_tab[0m not found.
+  Please use the NLTK Downloader to obtain the resource:
+
+  [31m>>> import nltk
+  >>> nltk.download('punkt_tab')
+  [0m
+  For more information see: https://www.nltk.org/data.html
+
+  Attempted to load [93mtokenizers/punkt_tab/english/[0m
+
+  Searched in:
+    - '/home/ivan/nltk_data'
+    - '/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/nltk_data'
+    - '/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/share/nltk_data'
+    - '/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/nltk_data'
+    - '/usr/share/nltk_data'
+    - '/usr/local/share/nltk_data'
+    - '/usr/lib/nltk_data'
+    - '/usr/local/lib/nltk_data'
+**********************************************************************
+
+2025-11-27 18:54:39,209 - app - ERROR - Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.

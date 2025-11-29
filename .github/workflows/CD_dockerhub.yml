@@ -13,13 +13,15 @@ on:
       - Python Lint
     types:
       - completed
+    branches:
+      - main
 
 jobs:
   push_to_registry:
     # Solo ejecutar si los workflows pasaron con éxito y la rama fue main o trunk
     if: >
       ${{ github.event.workflow_run.conclusion == 'success' &&
-          (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'trunk') }}
+          github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-24.04
 
     steps:
