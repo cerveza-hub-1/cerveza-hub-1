@@ -75,7 +75,7 @@ def create_dataset():
             zenodo_response_json = {}
             logger.exception(f"Exception while create dataset data in Zenodo {exc}")
 
-        if data.get("conceptrecid"):
+        if data.get("id"):
             deposition_id = data.get("id")
 
             # update dataset with deposition id in Zenodo
@@ -86,12 +86,17 @@ def create_dataset():
                 for feature_model in dataset.feature_models:
                     zenodo_service.upload_file(dataset, deposition_id, feature_model)
 
-                # publish deposition
-                zenodo_service.publish_deposition(deposition_id)
+                # publish deposition y guardar DOI
+                zenodo_response = zenodo_service.publish_deposition(deposition_id)
+
+                doi = zenodo_response.get("doi")
+                if doi:
+                    dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=doi)
+                    logger.info(f"DOI actualizado: {doi}")
 
                 # update DOI
-                deposition_doi = zenodo_service.get_doi(deposition_id)
-                dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
+                # deposition_doi = zenodo_service.get_doi(deposition_id)
+                # dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
             except Exception as e:
                 msg = f"it has not been possible upload feature models in Zenodo and update the DOI: {e}"
                 return jsonify({"message": msg}), 200
