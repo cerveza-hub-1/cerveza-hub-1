@@ -420,6 +420,7 @@
 
                             this.on('error', function (file, response) {
                                 console.error("Error uploading file: ", response);
+                                this.removeFile(file);
                                 let alert = document.createElement('p');
                                 alert.textContent = 'csv not valid: ' + file.name;
                                 alerts.appendChild(alert);

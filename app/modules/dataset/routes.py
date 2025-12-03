@@ -151,6 +151,15 @@ def upload():
     if not file or not file.filename.lower().endswith(".csv"):
         return jsonify({"message": "No valid CSV file"}), 400
 
+    # Leer contenido para validarlo
+    file_content = file.read().decode("utf-8", errors="ignore")
+    file.seek(0)  # IMPORTANTE
+
+    # Validación CSV usando la nueva función
+    is_valid, error = validate_csv_content(file_content)
+    if not is_valid:
+        return jsonify(error), 400
+
     # Crear carpeta temporal
     if not os.path.exists(temp_folder):
         os.makedirs(temp_folder)
