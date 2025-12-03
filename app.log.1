@@ -1,78 +1,122 @@
-2025-11-24 19:38:40,855 - app - ERROR - Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
-2025-11-27 18:54:39,195 - app - ERROR - Exception on /doi/10.1234/dataset4/ [GET]
+2025-12-03 15:13:35,687 - app.modules.dataset.routes - ERROR - Exception while create dataset data in local (pymysql.err.OperationalError) (1054, "Unknown column 'csv_filename' in 'INSERT INTO'")
+[SQL: INSERT INTO fm_meta_data (csv_filename, title, description, publication_type, publication_doi, tags, csv_version, fm_metrics_id) VALUES (%(csv_filename)s, %(title)s, %(description)s, %(publication_type)s, %(publication_doi)s, %(tags)s, %(csv_version)s, %(fm_metrics_id)s)]
+[parameters: {'csv_filename': 'file1 (1) (1).csv', 'title': '', 'description': '', 'publication_type': 'none', 'publication_doi': '', 'tags': '', 'csv_version': None, 'fm_metrics_id': None}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
 Traceback (most recent call last):
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
-    response = self.full_dispatch_request()
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask_restful/__init__.py", line 298, in error_router
-    return original_handler(e)
-           ^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-         ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
-    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/routes.py", line 256, in subdomain_index
-    recs_general = dataset_service.get_similar_datasets(target_dataset_id=dataset.id, field_type="full_text_corpus")
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 214, in get_similar_datasets
-    engine = self._get_or_create_engine()
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 207, in _get_or_create_engine
-    DataSetService._recommendation_engine = RecommendationEngine(flask_app_instance)
-                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 66, in __init__
-    self._initialize_engine()
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 172, in _initialize_engine
-    corpus = self._get_corpus_data_from_db()
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/services.py", line 106, in _get_corpus_data_from_db
-    full_text_processed = nlp_utils.proceso_contenido_completo(raw_combined_text)
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/app/modules/dataset/nlp_utils.py", line 107, in proceso_contenido_completo
-    tokens = word_tokenize(texto)
-             ^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/__init__.py", line 142, in word_tokenize
-    sentences = [text] if preserve_line else sent_tokenize(text, language)
-                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/__init__.py", line 119, in sent_tokenize
-    tokenizer = _get_punkt_tokenizer(language)
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/__init__.py", line 105, in _get_punkt_tokenizer
-    return PunktTokenizer(language)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/punkt.py", line 1744, in __init__
-    self.load_lang(lang)
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/tokenize/punkt.py", line 1749, in load_lang
-    lang_dir = find(f"tokenizers/punkt_tab/{lang}/")
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/python3.12/site-packages/nltk/data.py", line 579, in find
-    raise LookupError(resource_not_found)
-LookupError: 
-**********************************************************************
-  Resource [93mpunkt_tab[0m not found.
-  Please use the NLTK Downloader to obtain the resource:
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1961, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 944, in do_execute
+    cursor.execute(statement, parameters)
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 563, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 825, in _read_query_result
+    result.read()
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 1199, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1054, "Unknown column 'csv_filename' in 'INSERT INTO'")
 
-  [31m>>> import nltk
-  >>> nltk.download('punkt_tab')
-  [0m
-  For more information see: https://www.nltk.org/data.html
+The above exception was the direct cause of the following exception:
 
-  Attempted to load [93mtokenizers/punkt_tab/english/[0m
-
-  Searched in:
-    - '/home/ivan/nltk_data'
-    - '/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/nltk_data'
-    - '/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/share/nltk_data'
-    - '/home/ivan/Repositorios/Universidad/EGC/proyecto/cerveza-hub-1/venv/lib/nltk_data'
-    - '/usr/share/nltk_data'
-    - '/usr/local/share/nltk_data'
-    - '/usr/lib/nltk_data'
-    - '/usr/local/lib/nltk_data'
-**********************************************************************
-
-2025-11-27 18:54:39,209 - app - ERROR - Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+Traceback (most recent call last):
+  File "/home/practica/cerveza-hub-1/app/modules/dataset/routes.py", line 61, in create_dataset
+    dataset = dataset_service.create_from_form(form=form, current_user=current_user)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/app/modules/dataset/services.py", line 398, in create_from_form
+    raise exc
+  File "/home/practica/cerveza-hub-1/app/modules/dataset/services.py", line 377, in create_from_form
+    fmmetadata = self.fmmetadata_repository.create(commit=False, **csv_model.get_fmmetadata())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/core/repositories/BaseRepository.py", line 19, in create
+    self.session.flush()
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/scoping.py", line 938, in flush
+    return self._proxied.flush(objects=objects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4345, in flush
+    self._flush(objects)
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4480, in _flush
+    with util.safe_reraise():
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4441, in _flush
+    flush_context.execute()
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1413, in execute
+    return meth(
+           ^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1635, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1840, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1980, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2349, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1961, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 944, in do_execute
+    cursor.execute(statement, parameters)
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 563, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 825, in _read_query_result
+    result.read()
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 1199, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/practica/cerveza-hub-1/venv/lib/python3.12/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (1054, "Unknown column 'csv_filename' in 'INSERT INTO'")
+[SQL: INSERT INTO fm_meta_data (csv_filename, title, description, publication_type, publication_doi, tags, csv_version, fm_metrics_id) VALUES (%(csv_filename)s, %(title)s, %(description)s, %(publication_type)s, %(publication_doi)s, %(tags)s, %(csv_version)s, %(fm_metrics_id)s)]
+[parameters: {'csv_filename': 'file1 (1) (1).csv', 'title': '', 'description': '', 'publication_type': 'none', 'publication_doi': '', 'tags': '', 'csv_version': None, 'fm_metrics_id': None}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-12-03 15:23:27,336 - app.modules.dataset.routes - ERROR - Exception while create dataset data in Zenodo Failed to create deposition. Error details: {"status": 403, "message": "Permission denied."}
+Traceback (most recent call last):
+  File "/home/practica/cerveza-hub-1/app/modules/dataset/routes.py", line 71, in create_dataset
+    zenodo_response_json = zenodo_service.create_new_deposition(dataset)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/app/modules/zenodo/services.py", line 171, in create_new_deposition
+    raise Exception(f"Failed to create deposition. Error details: {response.text}")
+Exception: Failed to create deposition. Error details: {"status": 403, "message": "Permission denied."}
+2025-12-03 19:59:14,559 - app.modules.dataset.routes - ERROR - Exception while create dataset data in Zenodo Failed to create deposition. Error details: {"status": 403, "message": "Permission denied."}
+Traceback (most recent call last):
+  File "/home/practica/cerveza-hub-1/app/modules/dataset/routes.py", line 71, in create_dataset
+    zenodo_response_json = zenodo_service.create_new_deposition(dataset)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/practica/cerveza-hub-1/app/modules/zenodo/services.py", line 171, in create_new_deposition
+    raise Exception(f"Failed to create deposition. Error details: {response.text}")
+Exception: Failed to create deposition. Error details: {"status": 403, "message": "Permission denied."}

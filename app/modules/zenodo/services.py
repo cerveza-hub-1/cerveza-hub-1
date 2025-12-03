@@ -8,7 +8,7 @@ from flask import Response, jsonify
 from flask_login import current_user
 
 from app.modules.dataset.models import DataSet
-from app.modules.featuremodel.models import FeatureModel
+from app.modules.csvmodel.models import CSVModel
 from app.modules.zenodo.repositories import ZenodoRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
@@ -154,7 +154,7 @@ class ZenodoService(BaseService):
             "description": dataset.ds_meta_data.description,
             "creators": [{"name": author.name} for author in dataset.ds_meta_data.authors],
             "keywords": (
-                ["uvlhub"] if not dataset.ds_meta_data.tags else dataset.ds_meta_data.tags.split(", ") + ["uvlhub"]
+                ["csvhub"] if not dataset.ds_meta_data.tags else dataset.ds_meta_data.tags.split(", ") + ["csvhub"]
             ),
             "access_right": "open",
             "license": "CC-BY-4.0",
@@ -171,13 +171,13 @@ class ZenodoService(BaseService):
             raise Exception(f"Failed to create deposition. Error details: {response.text}")
         return response.json()
 
-    def upload_file(self, dataset: DataSet, deposition_id: int, feature_model: FeatureModel, user=None) -> dict:
+    def upload_file(self, dataset: DataSet, deposition_id: int, csv_model: CSVModel, user=None) -> dict:
         """
         Upload a file to a deposition in Zenodo or simulate it in Fakenodo.
         """
-        uvl_filename = feature_model.fm_meta_data.uvl_filename
+        csv_filename = csv_model.fm_meta_data.csv_filename
         user_id = current_user.id if user is None else user.id
-        file_path = os.path.join(uploads_folder_name(), f"user_{str(user_id)}", f"dataset_{dataset.id}/", uvl_filename)
+        file_path = os.path.join(uploads_folder_name(), f"user_{str(user_id)}", f"dataset_{dataset.id}/", csv_filename)
 
         if self.is_fakenodo:
             # Simulación: no existe /files en fakenodo, devolvemos respuesta simulada
@@ -189,11 +189,11 @@ class ZenodoService(BaseService):
                     "title": dataset.ds_meta_data.title,
                     "description": dataset.ds_meta_data.description,
                 },
-                "files": [uvl_filename],
+                "files": [csv_filename],
             }
 
         # --- Zenodo real ---
-        data = {"name": uvl_filename}
+        data = {"name": csv_filename}
         files = {"file": open(file_path, "rb")}
         publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/files"
 

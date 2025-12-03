@@ -27,8 +27,8 @@ from app.modules.dataset.repositories import (
     DSMetaDataRepository,
     DSViewRecordRepository,
 )
-from app.modules.featuremodel.repositories import (
-    FeatureModelRepository,
+from app.modules.csvmodel.repositories import (
+    CSVModelRepository,
     FMMetaDataRepository,
 )
 from app.modules.hubfile.repositories import (
@@ -187,7 +187,7 @@ class DataSetService(BaseService):
 
     def __init__(self):
         super().__init__(DataSetRepository())
-        self.feature_model_repository = FeatureModelRepository()
+        self.csv_model_repository = CSVModelRepository()
         self.author_repository = AuthorRepository()
         self.dsmetadata_repository = DSMetaDataRepository()
         self.fmmetadata_repository = FMMetaDataRepository()
@@ -258,7 +258,7 @@ class DataSetService(BaseService):
 
         return recommendations
 
-    def move_feature_models(self, dataset: DataSet):
+    def move_csv_models(self, dataset: DataSet):
         current_user = AuthenticationService().get_authenticated_user()
         source_dir = current_user.temp_folder()
 
@@ -267,9 +267,9 @@ class DataSetService(BaseService):
 
         os.makedirs(dest_dir, exist_ok=True)
 
-        for feature_model in dataset.feature_models:
-            uvl_filename = feature_model.fm_meta_data.uvl_filename
-            shutil.move(os.path.join(source_dir, uvl_filename), dest_dir)
+        for csv_model in dataset.csv_models:
+            csv_filename = csv_model.fm_meta_data.csv_filename
+            shutil.move(os.path.join(source_dir, csv_filename), dest_dir)
 
     def get_synchronized(self, current_user_id: int) -> DataSet:
         return self.repository.get_synchronized(current_user_id)
@@ -286,8 +286,8 @@ class DataSetService(BaseService):
     def count_synchronized_datasets(self):
         return self.repository.count_synchronized_datasets()
 
-    def count_feature_models(self):
-        return self.feature_model_repository.count()
+    def count_csv_models(self):
+        return self.csv_model_repository.count()
 
     def count_authors(self) -> int:
         return self.author_repository.count()
@@ -372,23 +372,23 @@ class DataSetService(BaseService):
 
             dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id)
 
-            for feature_model in form.feature_models:
-                uvl_filename = feature_model.uvl_filename.data
-                fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
-                for author_data in feature_model.get_authors():
+            for csv_model in form.csv_models:
+                csv_filename = csv_model.csv_filename.data
+                fmmetadata = self.fmmetadata_repository.create(commit=False, **csv_model.get_fmmetadata())
+                for author_data in csv_model.get_authors():
                     author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
                     fmmetadata.authors.append(author)
 
-                fm = self.feature_model_repository.create(
+                fm = self.csv_model_repository.create(
                     commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
                 )
 
-                # associated files in feature model
-                file_path = os.path.join(current_user.temp_folder(), uvl_filename)
+                # associated files in csv model
+                file_path = os.path.join(current_user.temp_folder(), csv_filename)
                 checksum, size = calculate_checksum_and_size(file_path)
 
                 file = self.hubfilerepository.create(
-                    commit=False, name=uvl_filename, checksum=checksum, size=size, feature_model_id=fm.id
+                    commit=False, name=csv_filename, checksum=checksum, size=size, csv_model_id=fm.id
                 )
                 fm.files.append(file)
             self.repository.session.commit()
@@ -410,7 +410,7 @@ class DataSetService(BaseService):
     def update_dsmetadata(self, ds_id, **kwargs):
         return self.dsmetadata_repository.update(ds_id, **kwargs)
 
-    def get_uvlhub_doi(self, dataset: DataSet) -> str:
+    def get_csvhub_doi(self, dataset: DataSet) -> str:
         domain = os.getenv("DOMAIN", "localhost")
         return f"http://{domain}/doi/{dataset.ds_meta_data.dataset_doi}"
 

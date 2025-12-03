@@ -6,6 +6,7 @@ import tempfile
 import uuid
 from datetime import datetime, timezone
 from zipfile import ZipFile
+from .csv_validator import validate_csv_content
 
 from flask import (
     abort,
@@ -60,7 +61,7 @@ def create_dataset():
             logger.info("Creating dataset...")
             dataset = dataset_service.create_from_form(form=form, current_user=current_user)
             logger.info(f"Created dataset: {dataset}")
-            dataset_service.move_feature_models(dataset)
+            dataset_service.move_csv_models(dataset)
         except Exception as exc:
             logger.exception(f"Exception while create dataset data in local {exc}")
             return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
@@ -83,9 +84,9 @@ def create_dataset():
             dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
 
             try:
-                # iterate for each feature model (one feature model = one request to Zenodo)
-                for feature_model in dataset.feature_models:
-                    zenodo_service.upload_file(dataset, deposition_id, feature_model)
+                # iterate for each csv model (one csv model = one request to Zenodo)
+                for csv_model in dataset.csv_models:
+                    zenodo_service.upload_file(dataset, deposition_id, csv_model)
 
                 # publish deposition y guardar DOI
                 zenodo_response = zenodo_service.publish_deposition(deposition_id)
@@ -99,7 +100,7 @@ def create_dataset():
                 # deposition_doi = zenodo_service.get_doi(deposition_id)
                 # dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
             except Exception as e:
-                msg = f"it has not been possible upload feature models in Zenodo and update the DOI: {e}"
+                msg = f"it has not been possible upload csv models in Zenodo and update the DOI: {e}"
                 return jsonify({"message": msg}), 200
 
         # Delete temp folder
@@ -111,6 +112,23 @@ def create_dataset():
         return jsonify({"message": msg}), 200
 
     return render_template("dataset/upload_dataset.html", form=form)
+
+
+@dataset_bp.route("/dataset/file/validate", methods=["POST"])
+@login_required
+def validate_file():
+    data = request.get_json()
+    if not data or "content" not in data:
+        return jsonify({"valid": False, "message": "No content provided"}), 400
+
+    file_content = data["content"]
+
+    # Usamos tu validador
+    is_valid, error = validate_csv_content(file_content)
+    if is_valid:
+        return jsonify({"valid": True}), 200
+    else:
+        return jsonify({"valid": False, "error": error}), 200
 
 
 @dataset_bp.route("/dataset/list", methods=["GET", "POST"])
@@ -126,20 +144,20 @@ def list_dataset():
 @dataset_bp.route("/dataset/file/upload", methods=["POST"])
 @login_required
 def upload():
-    file = request.files["file"]
+    file = request.files.get("file")
     temp_folder = current_user.temp_folder()
 
-    if not file or not file.filename.endswith(".uvl"):
-        return jsonify({"message": "No valid file"}), 400
+    # Validar extensión
+    if not file or not file.filename.lower().endswith(".csv"):
+        return jsonify({"message": "No valid CSV file"}), 400
 
-    # create temp folder
+    # Crear carpeta temporal
     if not os.path.exists(temp_folder):
         os.makedirs(temp_folder)
 
+    # Generar nombre único
     file_path = os.path.join(temp_folder, file.filename)
-
     if os.path.exists(file_path):
-        # Generate unique filename (by recursion)
         base_name, extension = os.path.splitext(file.filename)
         i = 1
         while os.path.exists(os.path.join(temp_folder, f"{base_name} ({i}){extension}")):
@@ -149,21 +167,18 @@ def upload():
     else:
         new_filename = file.filename
 
+    # Guardar archivo
     try:
         file.save(file_path)
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
-    return (
-        jsonify(
-            {
-                "message": "UVL uploaded and validated successfully",
-                "filename": new_filename,
-            }
-        ),
-        200,
-    )
-
+    return jsonify(
+        {
+            "message": "CSV uploaded and validated successfully",
+            "filename": new_filename,
+        }
+    ), 200
 
 @dataset_bp.route("/dataset/file/delete", methods=["POST"])
 @login_required

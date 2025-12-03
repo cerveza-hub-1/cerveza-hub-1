@@ -147,10 +147,10 @@
             <div class="card-body" style="padding-top: 0px">
 
                 <div id="dataset_doi_uvlhub" style="display: none">
-                    {{ dataset.get_uvlhub_doi() }}
+                    {{ dataset.get_csvhub_doi() }}
                 </div>
                 <div id="dataset_doi_uvlhub_duplicate" style="display: none">
-                    {{ dataset.get_uvlhub_doi() }}
+                    {{ dataset.get_csvhub_doi() }}
                 </div>
 
                 <button type="button" class="btn doi_button btn-sm" onclick="copyText('dataset_doi_uvlhub')">
@@ -159,7 +159,7 @@
                         <b>DOI</b>
                     </span>
                     <span class="doi_text">
-                        {{ dataset.get_uvlhub_doi() }}
+                        {{ dataset.get_csvhub_doi() }}
                     </span>
                 </button>
             </div>
@@ -299,15 +299,15 @@
             <div class="list-group-item">
                 <div class="row">
                     <div class="col-12 d-flex justify-content-between align-items-center">
-                        <h4 style="margin-bottom: 0px">UVL models</h4>
+                        <h4 style="margin-bottom: 0px">CSV models</h4>
                         <h4 style="margin-bottom: 0px;"><span class="badge bg-dark">{{ dataset.get_files_count() }}</span></h4>
                     </div>
                 </div>
             </div>
             
 
-            {% for feature_model in dataset.feature_models %}
-                {% for file in feature_model.files %}
+            {% for csv_model in dataset.csv_models %}
+                {% for file in csv_model.files %}
                     <div class="list-group-item">
                         <div class="row">
                             <div class="col-12">
@@ -664,7 +664,7 @@
                 </div>
             `;
         } else {
-ç
+
             html = `
                 <div class="comment-item border-start border-3 ps-3 mb-3" id="comment-${commentData.id}">
                     <p class="mb-0">

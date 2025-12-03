@@ -4,7 +4,7 @@ import unidecode
 from sqlalchemy import or_
 
 from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
-from app.modules.featuremodel.models import FeatureModel, FMMetaData
+from app.modules.csvmodel.models import CSVModel, FMMetaData
 from core.repositories.BaseRepository import BaseRepository
 
 
@@ -31,8 +31,8 @@ class ExploreRepository(BaseRepository):
         datasets = (
             self.model.query.join(DataSet.ds_meta_data)
             .join(DSMetaData.authors)
-            .join(DataSet.feature_models)
-            .join(FeatureModel.fm_meta_data)
+            .join(DataSet.csv_models)
+            .join(CSVModel.fm_meta_data)
         )
 
         normalized_query = unidecode.unidecode(query).lower()
@@ -50,7 +50,7 @@ class ExploreRepository(BaseRepository):
         if orcid:
             datasets = datasets.filter(Author.orcid.ilike(f"%{orcid}%"))
         if csv_filename:
-            datasets = datasets.filter(FMMetaData.uvl_filename.ilike(f"%{csv_filename}%"))
+            datasets = datasets.filter(FMMetaData.csv_filename.ilike(f"%{csv_filename}%"))
         if csv_title:
             datasets = datasets.filter(FMMetaData.title.ilike(f"%{csv_title}%"))
         if publication_doi:
