@@ -6,7 +6,6 @@ import tempfile
 import uuid
 from datetime import datetime, timezone
 from zipfile import ZipFile
-from .csv_validator import validate_csv_content
 
 from flask import (
     abort,
@@ -33,6 +32,8 @@ from app.modules.dataset.services import (
     DSViewRecordService,
 )
 from app.modules.zenodo.services import ZenodoService
+
+from .csv_validator import validate_csv_content
 
 logger = logging.getLogger(__name__)
 

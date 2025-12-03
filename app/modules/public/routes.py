@@ -2,8 +2,8 @@ import logging
 
 from flask import render_template
 
-from app.modules.dataset.services import DataSetService
 from app.modules.csvmodel.services import CSVModelService
+from app.modules.dataset.services import DataSetService
 from app.modules.public import public_bp
 
 logger = logging.getLogger(__name__)

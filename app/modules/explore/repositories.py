@@ -3,8 +3,8 @@ import re
 import unidecode
 from sqlalchemy import or_
 
-from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
 from app.modules.csvmodel.models import CSVModel, FMMetaData
+from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
 from core.repositories.BaseRepository import BaseRepository
 
 

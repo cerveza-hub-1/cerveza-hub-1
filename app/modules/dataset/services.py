@@ -17,6 +17,10 @@ from whoosh.index import create_in
 
 from app import db
 from app.modules.auth.services import AuthenticationService
+from app.modules.csvmodel.repositories import (
+    CSVModelRepository,
+    FMMetaDataRepository,
+)
 from app.modules.dataset import nlp_utils
 from app.modules.dataset.models import DataSet, DSDownloadRecord, DSMetaData, DSViewRecord
 from app.modules.dataset.repositories import (
@@ -26,10 +30,6 @@ from app.modules.dataset.repositories import (
     DSDownloadRecordRepository,
     DSMetaDataRepository,
     DSViewRecordRepository,
-)
-from app.modules.csvmodel.repositories import (
-    CSVModelRepository,
-    FMMetaDataRepository,
 )
 from app.modules.hubfile.repositories import (
     HubfileDownloadRecordRepository,
