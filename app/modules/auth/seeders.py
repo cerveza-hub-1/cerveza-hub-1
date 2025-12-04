@@ -8,30 +8,27 @@ class AuthSeeder(BaseSeeder):
     priority = 1  # Higher priority
 
     def run(self):
-
-        # Seeding users
-        users = [
-            User(email="user1@example.com", password="1234"),
-            User(email="user2@example.com", password="1234"),
+        # Usuarios a crear
+        users_to_create = [
+            {"email": "user1@example.com", "password": "1234", "name": "John", "surname": "Doe"},
+            {"email": "user2@example.com", "password": "1234", "name": "Jane", "surname": "Doe"},
         ]
 
-        # Inserted users with their assigned IDs are returned by `self.seed`.
-        seeded_users = self.seed(users)
+        for u in users_to_create:
+            # Solo crear si no existe
+            user = User.query.filter_by(email=u["email"]).first()
+            if not user:
+                user = User(email=u["email"], password=u["password"])
+                self.seed([user])
 
-        # Create profiles for each user inserted.
-        user_profiles = []
-        names = [("John", "Doe"), ("Jane", "Doe")]
-
-        for user, name in zip(seeded_users, names):
-            profile_data = {
-                "user_id": user.id,
-                "orcid": "",
-                "affiliation": "Some University",
-                "name": name[0],
-                "surname": name[1],
-            }
-            user_profile = UserProfile(**profile_data)
-            user_profiles.append(user_profile)
-
-        # Seeding user profiles
-        self.seed(user_profiles)
+            # Crear perfil si no existe
+            profile = UserProfile.query.filter_by(user_id=user.id).first()
+            if not profile:
+                profile = UserProfile(
+                    user_id=user.id,
+                    orcid="",
+                    affiliation="Some University",
+                    name=u["name"],
+                    surname=u["surname"]
+                )
+                self.seed([profile])

@@ -72,7 +72,7 @@ class DataSetSeeder(BaseSeeder):
                 csv_filename=f"file{i+1}.csv",
                 title=f"csv Model {i+1}",
                 description=f"Description for csv model {i+1}",
-                publication_type=PublicationType.BEER_RECOMENDATION,
+                publication_type=PublicationType.BEER_BRANCHES,
                 publication_doi=f"10.1234/fm{i+1}",
                 tags="tag1, tag2",
                 csv_version="1.0",
