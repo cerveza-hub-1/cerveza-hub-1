@@ -10,7 +10,7 @@ def validate_csv_content(file_content: str):
         lines = file_content.splitlines()
         sample = "\n".join(lines[:10])  # suficiente para detectar
         try:
-            dialect = sniffer.sniff(sample, delimiters=[',', ';', '\t'])
+            dialect = sniffer.sniff(sample, delimiters=[",", ";", "\t"])
         except csv.Error:
             dialect = csv.excel  # fallback si no detecta
         reader = csv.reader(lines, dialect)
