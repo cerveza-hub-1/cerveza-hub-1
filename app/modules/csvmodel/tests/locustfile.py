@@ -9,7 +9,7 @@ class FeaturemodelBehavior(TaskSet):
 
     @task
     def index(self):
-        response = self.client.get("/featuremodel")
+        response = self.client.get("/csvmodel")
 
         if response.status_code != 200:
             print(f"Featuremodel index failed: {response.status_code}")
