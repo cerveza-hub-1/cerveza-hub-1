@@ -25,10 +25,6 @@ class AuthSeeder(BaseSeeder):
             profile = UserProfile.query.filter_by(user_id=user.id).first()
             if not profile:
                 profile = UserProfile(
-                    user_id=user.id,
-                    orcid="",
-                    affiliation="Some University",
-                    name=u["name"],
-                    surname=u["surname"]
+                    user_id=user.id, orcid="", affiliation="Some University", name=u["name"], surname=u["surname"]
                 )
                 self.seed([profile])

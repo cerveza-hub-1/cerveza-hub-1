@@ -8,17 +8,17 @@ errores 'LookupError' al iniciar la aplicación Flask.
 
 import subprocess
 import sys
+
 import nltk
 
-
 NLTK_RESOURCES = [
-    'stopwords',
-    'punkt',
-    'punkt_tab',
-    'wordnet',
-    'omw-1.4',
-    'averaged_perceptron_tagger',
-    'averaged_perceptron_tagger_eng'
+    "stopwords",
+    "punkt",
+    "punkt_tab",
+    "wordnet",
+    "omw-1.4",
+    "averaged_perceptron_tagger",
+    "averaged_perceptron_tagger_eng",
 ]
 
 SPACY_MODELS = ["en_core_web_sm"]
@@ -39,6 +39,7 @@ def download_nltk_resources():
         except Exception as e:
             print(f"Error descargando '{resource}': {type(e).__name__} - {e}")
 
+
 def download_spacy_models():
     """
     Descarga los modelos lingüísticos de spaCy para inglés y español
@@ -53,10 +54,11 @@ def download_spacy_models():
             subprocess.check_call([sys.executable, "-m", "spacy", "download", model])
             print(f"Modelo '{model}' instalado correctamente.")
         except subprocess.CalledProcessError:
-             print(f"Falló la instalación automática de '{model}'.")
-             print(f"Intenta ejecutar manualmente: python -m spacy download {model}")
+            print(f"Falló la instalación automática de '{model}'.")
+            print(f"Intenta ejecutar manualmente: python -m spacy download {model}")
         except Exception as e:
             print(f"Error inesperado instalando '{model}': {type(e).__name__} - {e}")
+
 
 def main():
     """
@@ -83,6 +85,7 @@ def main():
     except Exception as e:
         print(f"\n Ocurrió un error crítico durante la configuración: {type(e).__name__} - {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

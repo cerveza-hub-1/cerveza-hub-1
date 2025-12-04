@@ -183,12 +183,16 @@ def upload():
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
-    return jsonify(
-        {
-            "message": "CSV uploaded and validated successfully",
-            "filename": new_filename,
-        }
-    ), 200
+    return (
+        jsonify(
+            {
+                "message": "CSV uploaded and validated successfully",
+                "filename": new_filename,
+            }
+        ),
+        200,
+    )
+
 
 @dataset_bp.route("/dataset/file/delete", methods=["POST"])
 @login_required
