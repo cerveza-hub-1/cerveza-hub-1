@@ -23,6 +23,7 @@ COPY core/ ./core
 COPY migrations/ ./migrations
 COPY scripts/ ./scripts
 COPY rosemary/ ./rosemary
+COPY pyproject.toml ./
 
 # Copy requirements.txt into the working directory /app
 COPY requirements.txt .
