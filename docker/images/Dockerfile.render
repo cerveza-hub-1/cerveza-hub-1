@@ -1,63 +1,58 @@
-# Use an official Python runtime as a parent image, Alpine version for a lighter footprint
+# Use an official Python runtime as a parent image
 FROM python:3.12-slim
 
 # Install necessary packages
 RUN apt-get update \
     && apt-get install -y --no-install-recommends mariadb-client \
     && apt-get install -y --no-install-recommends gcc libc-dev python3-dev libffi-dev \
-    && apt-get install -y --no-install-recommends curl \
-    && apt-get install -y --no-install-recommends bash \
-    && apt-get install -y --no-install-recommends openrc \
-    && apt-get install -y --no-install-recommends build-essential \
-    && apt-get install -y --no-install-recommends python3-setuptools
-
-# Clean up
-RUN apt-get clean \
+    && apt-get install -y --no-install-recommends curl bash openrc build-essential python3-venv \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory in the container to /app
+# Set working directory
 WORKDIR /app
 
-# Copy files
+# Copy project files
 COPY app/ ./app
 COPY core/ ./core
 COPY migrations/ ./migrations
 COPY scripts/ ./scripts
-
-# Copy requirements.txt into the working directory /app
 COPY requirements.txt .
 
-# Removes cache at the build stage
+# Clean Python cache
 RUN find . -type d -name "__pycache__" -exec rm -r {} + && \
     find . -type f -name "*.pyc" -exec rm -f {} +
 
-# Copy entrypoint and set execution permissions
+# Copy entrypoint and wait-for-db scripts
 COPY docker/entrypoints/render_entrypoint.sh /app/render_entrypoint.sh
 RUN chmod +x /app/render_entrypoint.sh
-
-# Copy the wait-for-db.sh script and set execution permissions
 COPY scripts/wait-for-db.sh /app/scripts/wait-for-db.sh
 RUN chmod +x /app/scripts/wait-for-db.sh
 
-# Create the .moduleignore file with the module 'webhook' inside
+# Create .moduleignore
 RUN echo "webhook" > /app/.moduleignore
 
-# Update pip, setuptools and wheel correctly
-RUN python3 -m pip uninstall -y setuptools || true
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install --upgrade setuptools wheel
+# -----------------------------
+# ✅ Setup virtualenv to isolate dependencies
+# -----------------------------
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Install any needed packages specified in requirements.txt
+# Upgrade pip, setuptools, wheel inside the venv
+RUN pip install --upgrade pip setuptools wheel
+
+# Install Python dependencies inside venv
 RUN pip install -r requirements.txt
 
 # Descargar modelos NLTK y spaCy
 RUN python scripts/download_nlp_resources.py
 
-# Instalar rosemary
+# Install Rosemary inside virtualenv
 RUN pip install rosemary
 
-# Expose port 80
+# Expose port
 EXPOSE 80
 
-# Command to run the application
+# Run the entrypoint
 CMD ["./render_entrypoint.sh"]
+
