@@ -22,6 +22,8 @@ COPY app/ ./app
 COPY core/ ./core
 COPY migrations/ ./migrations
 COPY scripts/ ./scripts
+COPY rosemary/ ./rosemary
+COPY pyproject.toml ./
 
 # Copy requirements.txt into the working directory /app
 COPY requirements.txt .
@@ -58,3 +60,4 @@ EXPOSE 80
 
 # Command to run the application
 CMD ["./render_entrypoint.sh"]
+
