@@ -3,6 +3,18 @@
 
 {% block content %}
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category if category else 'danger' }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
 <h1 class="h3 mb-3">Configure Two-Factor Authentication (2FA)</h1>
 
 <p>Scan the following QR code to set up second-factor authentication using <strong>Google Authenticator</strong> or <strong>Microsoft Authenticator</strong> mobile app.</p>
