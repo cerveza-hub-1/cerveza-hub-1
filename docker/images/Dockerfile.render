@@ -8,7 +8,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && apt-get install -y --no-install-recommends bash \
     && apt-get install -y --no-install-recommends openrc \
-    && apt-get install -y --no-install-recommends build-essential 
+    && apt-get install -y --no-install-recommends build-essential \
+    && apt-get install -y --no-install-recommends python3-setuptools
 
 # Clean up
 RUN apt-get clean \
@@ -41,16 +42,18 @@ RUN chmod +x /app/scripts/wait-for-db.sh
 # Create the .moduleignore file with the module 'webhook' inside
 RUN echo "webhook" > /app/.moduleignore
 
-# Update pip
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+# Update pip, setuptools and wheel correctly
+RUN python3 -m pip uninstall -y setuptools || true
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install --upgrade setuptools wheel
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
-# Descargar Descargar modelos NLTK y spaCy
+# Descargar modelos NLTK y spaCy
 RUN python scripts/download_nlp_resources.py
 
-#Instalar rosemary
+# Instalar rosemary
 RUN pip install rosemary
 
 # Expose port 80
