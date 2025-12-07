@@ -53,8 +53,6 @@ else
     # Run the migration process to apply all database schema changes
     flask db upgrade
 
-    # Seed the database with initial data
-    rosemary db:seed -y
 fi
 
 # Start the application using Gunicorn, binding it to port 80
