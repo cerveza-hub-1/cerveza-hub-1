@@ -29,21 +29,19 @@ def test_seeder_skips_user_but_creates_profile(clean_database, test_client):
     with test_client.application.app_context():
         # 1. Crear manualmente un solo usuario de la lista users_to_create
         user_data = {"email": "user1@example.com", "password": "1234"}
-        
+
         user = User(**user_data)
         user.set_password(user_data["password"])
         db.session.add(user)
         db.session.commit()
-        
-        initial_user_count = User.query.count()
-        
+
         # 2. Ejecutar el seeder (debe crear el perfil de user1 y el user2 + perfil2)
         seeder = AuthSeeder()
         seeder.run()
 
         # El usuario existente (user1) no debe duplicarse (count debe ser 2, ya que user2 se crea)
-        assert User.query.count() == 2 
-        assert UserProfile.query.count() == 2 
+        assert User.query.count() == 2
+        assert UserProfile.query.count() == 2
 
         user1 = User.query.filter_by(email="user1@example.com").first()
         assert user1.profile is not None
@@ -63,12 +61,10 @@ def test_seeder_skips_both_user_and_profile(clean_database, test_client):
         db.session.add(user)
         db.session.flush()
 
-        profile = UserProfile(
-            user_id=user.id, orcid="1111", affiliation="Old Uni", name="Old John", surname="Old Doe"
-        )
+        profile = UserProfile(user_id=user.id, orcid="1111", affiliation="Old Uni", name="Old John", surname="Old Doe")
         db.session.add(profile)
         db.session.commit()
-        
+
         # 2. Ejecutar el seeder (debe crear solo el user2 y su perfil)
         seeder = AuthSeeder()
         seeder.run()

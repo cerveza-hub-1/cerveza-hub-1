@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 import pyotp
 import pytest
 from flask import url_for
-from flask_login import current_user
 
 from app import db
 from app.modules.auth.repositories import UserRepository
@@ -110,23 +109,22 @@ def test_service_create_with_profile_fail_no_password(clean_database):
     assert UserRepository().count() == 0
     assert UserProfileRepository().count() == 0
 
+
 # --- Tests para AuthenticationService ---
 
 
 def test_service_login_success(clean_database):
     email = "service_login@example.com"
     password = "correct123"
-    AuthenticationService().create_with_profile(
-        name="LTest", surname="Srv", email=email, password=password
-    )
-    
+    AuthenticationService().create_with_profile(name="LTest", surname="Srv", email=email, password=password)
+
     service = AuthenticationService()
-    
+
     result = service.login(email=email, password=password)
 
     assert result is True, "El login debería ser exitoso"
 
-    
+
 def test_service_login_fail_bad_email(clean_database):
     service = AuthenticationService()
     result = service.login(email="nonexistent@example.com", password="anypassword")
@@ -155,7 +153,7 @@ def test_service_create_with_profile_fail_no_surname(clean_database):
 
 def test_service_update_profile_success(monkeypatch):
     service = AuthenticationService()
-    
+
     mock_form = MagicMock()
     mock_form.validate.return_value = True
     mock_form.data = {"name": "UpdatedName", "surname": "UpdatedSurname"}
@@ -184,7 +182,7 @@ def test_service_update_profile_failure(monkeypatch):
 
 def test_service_get_authenticated_user_authenticated(test_client, monkeypatch):
     service = AuthenticationService()
-    
+
     user = service.create_with_profile(name="Auth", surname="User", email="auth@example.com", password="1234")
 
     # Mockear current_user para simular que el usuario está logueado
@@ -192,22 +190,22 @@ def test_service_get_authenticated_user_authenticated(test_client, monkeypatch):
         # Configuramos el mock para que `is_authenticated` sea True y devuelva el objeto user
         mock_user = MagicMock()
         mock_user.is_authenticated = True
-        mock_user.email = user.email 
-        mock_user.profile = user.profile 
-        
+        mock_user.email = user.email
+        mock_user.profile = user.profile
+
         monkeypatch.setattr("app.modules.auth.services.current_user", mock_user)
-        
+
         user_result = service.get_authenticated_user()
-        
+
         assert user_result is not None
         assert user_result.email == user.email
-        
+
 
 def test_service_get_authenticated_user_unauthenticated(test_client):
     service = AuthenticationService()
-    
+
     test_client.get("/logout")
-    
+
     with test_client.application.app_context():
         user = service.get_authenticated_user()
         assert user is None
@@ -215,7 +213,7 @@ def test_service_get_authenticated_user_unauthenticated(test_client):
 
 def test_service_get_authenticated_user_profile_authenticated(test_client, monkeypatch):
     service = AuthenticationService()
-    
+
     user = service.create_with_profile(name="Auth", surname="Profile", email="auth_prof@example.com", password="1234")
 
     # Mockear current_user
@@ -223,20 +221,20 @@ def test_service_get_authenticated_user_profile_authenticated(test_client, monke
         mock_user = MagicMock()
         mock_user.is_authenticated = True
         mock_user.profile = user.profile
-        
+
         monkeypatch.setattr("app.modules.auth.services.current_user", mock_user)
-        
+
         profile_result = service.get_authenticated_user_profile()
-        
+
         assert profile_result is not None
         assert profile_result.surname == "Profile"
 
 
 def test_service_get_authenticated_user_profile_unauthenticated(test_client):
     service = AuthenticationService()
-    
+
     test_client.get("/logout")
-    
+
     with test_client.application.app_context():
         profile = service.get_authenticated_user_profile()
         assert profile is None
@@ -245,24 +243,20 @@ def test_service_get_authenticated_user_profile_unauthenticated(test_client):
 def test_signup_redirect_if_authenticated(test_client, monkeypatch):
     mock_user = MagicMock()
     mock_user.is_authenticated = True
-    
+
     monkeypatch.setattr("app.modules.auth.routes.current_user", mock_user)
-    
+
     response = test_client.get("/signup/", follow_redirects=False)
 
     assert response.status_code == 302
     assert response.location == url_for("public.index", _external=False)
-    
+
 
 def test_login_redirects_authenticated_user(test_client):
     email = "redirect_login@example.com"
-    AuthenticationService().create_with_profile(
-        name="Redirect", surname="Test", email=email, password="1234"
-    )
+    AuthenticationService().create_with_profile(name="Redirect", surname="Test", email=email, password="1234")
 
-    test_client.post(
-        "/login", data=dict(email=email, password="1234"), follow_redirects=True
-    )
+    test_client.post("/login", data=dict(email=email, password="1234"), follow_redirects=True)
 
     response = test_client.get("/login", follow_redirects=False)
 
@@ -270,16 +264,14 @@ def test_login_redirects_authenticated_user(test_client):
     assert response.location == url_for("public.index", _external=False)
 
     test_client.get("/logout", follow_redirects=True)
-    
+
 
 def test_signup_exception_handling(test_client, monkeypatch):
 
     def fake_create_with_profile(*args, **kwargs):
         raise Exception("DB failure")
 
-    monkeypatch.setattr(
-        AuthenticationService, "create_with_profile", fake_create_with_profile
-    )
+    monkeypatch.setattr(AuthenticationService, "create_with_profile", fake_create_with_profile)
 
     response = test_client.post(
         "/signup/",
@@ -292,6 +284,7 @@ def test_signup_exception_handling(test_client, monkeypatch):
 
 
 # TESTS UNITARIOS 2FA
+
 
 def test_login_redirects_to_2fa_if_enabled(test_client):
     service = AuthenticationService()
@@ -332,9 +325,7 @@ def test_login_renders_form_on_get(test_client):
 
 
 def test_login_renders_form_on_invalid_post(test_client):
-    response = test_client.post(
-        "/login", data=dict(email="", password=""), follow_redirects=True
-    )
+    response = test_client.post("/login", data=dict(email="", password=""), follow_redirects=True)
 
     assert response.status_code == 200
     assert b"Login" in response.data or b"Invalid" not in response.data
@@ -343,9 +334,7 @@ def test_login_renders_form_on_invalid_post(test_client):
 def test_verify_2fa_user_without_profile_redirects(test_client):
     # Crear usuario sin perfil manualmente (borrar perfil)
     service = AuthenticationService()
-    user = service.create_with_profile(
-        name="NoProfile", surname="User", email="noprofile@example.com", password="1234"
-    )
+    user = service.create_with_profile(name="NoProfile", surname="User", email="noprofile@example.com", password="1234")
 
     # Eliminar su perfil
     db.session.delete(user.profile)
@@ -362,9 +351,7 @@ def test_verify_2fa_user_without_profile_redirects(test_client):
 
 def test_verify_2fa_user_without_secret_redirects(test_client):
     service = AuthenticationService()
-    user = service.create_with_profile(
-        name="NoSecret", surname="User", email="nosecret@example.com", password="1234"
-    )
+    user = service.create_with_profile(name="NoSecret", surname="User", email="nosecret@example.com", password="1234")
 
     profile = UserProfileRepository().get_by_user_id(user.id)
     profile.twofa_enabled = True
@@ -376,7 +363,7 @@ def test_verify_2fa_user_without_secret_redirects(test_client):
         sess["pending_2fa_user_id"] = user.id
 
     response = test_client.post("/verify-2fa", data=dict(token="123456"))
-    
+
     assert response.status_code == 302
     assert response.location == url_for("auth.login")
 
@@ -487,11 +474,11 @@ def test_generate_twofa_secret(clean_database):
     )
 
     # Activamos el 2FA por primera vez
-    secret_to_set = pyotp.random_base32() # Secreto se genera fuera del modelo
-    user.profile.set_twofa_secret(secret_to_set) # Se encripta y se guarda
-    
+    secret_to_set = pyotp.random_base32()  # Secreto se genera fuera del modelo
+    user.profile.set_twofa_secret(secret_to_set)  # Se encripta y se guarda
+
     user.profile.save()
-    
+
     secret = user.profile.get_twofa_secret()
 
     assert secret is not None, "El secreto no debe ser None"
@@ -501,7 +488,7 @@ def test_generate_twofa_secret(clean_database):
     totp = pyotp.TOTP(secret)
     token = totp.now()
     assert len(token) == 6, "El token TOTP debe tener 6 dígitos"
-    
+
 
 def test_2fa_user_without_secret(clean_database):
     service = AuthenticationService()
@@ -528,10 +515,10 @@ def test_2fa_user_without_secret(clean_database):
             valid = totp.verify("123456")
         else:
             valid = False
-            
+
     except Exception:
         valid = False
-        
+
     assert not valid, "La verificación debe devolver False o lanzar excepción controlada si no se verifica el secreto"
 
 
@@ -594,14 +581,16 @@ def test_verify_2fa_unsuccessful_bad_token(test_client):
     with test_client.session_transaction() as sess:
         sess["pending_2fa_user_id"] = user_id_to_use
 
-    bad_token = "000000" # Token incorrecto
+    bad_token = "000000"  # Token incorrecto
     response = test_client.post("/verify-2fa", data=dict(token=bad_token), follow_redirects=False)
 
-    assert response.status_code == 200 # No hay redirección, se mantiene en la página
-    
+    assert response.status_code == 200  # No hay redirección, se mantiene en la página
+
     assert b"token" in response.data or b"Token" in response.data
-    assert b"Invalid code. Try again." in response.data or b"Invalid code" in response.data, "El mensaje de error no es visible en la respuesta"
-    
+    assert (
+        b"Invalid code. Try again." in response.data or b"Invalid code" in response.data
+    ), "El mensaje de error no es visible en la respuesta"
+
     with test_client.session_transaction() as sess:
         assert "pending_2fa_user_id" in sess, "El ID de usuario pendiente debe permanecer en la sesión"
 
@@ -619,4 +608,3 @@ def test_verify_2fa_no_pending_session(test_client):
     # Debe redirigir al login
     assert response.status_code == 302
     assert response.location == url_for("auth.login")
-    
