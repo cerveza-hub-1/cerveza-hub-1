@@ -90,9 +90,7 @@ def test_upload_csv_dataset():
         upload_btn.click()
 
         # Esperar a la redirección
-        WebDriverWait(driver, 10).until(
-            lambda d: d.current_url.endswith("/dataset/list")
-        )
+        WebDriverWait(driver, 10).until(lambda d: d.current_url.endswith("/dataset/list"))
 
         # Validar que se redirige a la lista
         assert driver.current_url == f"{host}/dataset/list", "Test failed!"
