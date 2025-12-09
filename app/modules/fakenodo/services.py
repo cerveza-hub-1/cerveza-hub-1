@@ -34,11 +34,11 @@ class FakenodoService(BaseService):
         if not record:
             success = False
             messages.append("Failed to create simulated deposition.")
+            return jsonify({"success": success, "messages": messages})
 
         # Simula publicación con archivo
         record.doi = f"10.9999/fakenodo.{uuid.uuid4().hex[:6]}"
         record.published = True
-        self.repository.update(record)
 
         messages.append("Simulated publication successful.")
 

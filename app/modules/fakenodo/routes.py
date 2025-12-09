@@ -6,9 +6,9 @@ from app.modules.fakenodo.services import FakenodoService
 service = FakenodoService()
 
 
-@fakenodo_bp.route("/fakenodo", methods=["GET"])
+@fakenodo_bp.route("/", methods=["GET"])
 def index():
-    return render_template("fakenodo/index.html")
+    return render_template("index.html")
 
 
 @fakenodo_bp.route("/test", methods=["GET"])
@@ -28,14 +28,20 @@ def create_record():
 def publish_record(record_id):
     data = request.get_json()
     files = data.get("files", [])
-    version = service.publish_record(record_id, files)
-    return jsonify(version), 202
+    try:
+        version = service.publish_record(record_id, files)
+        return jsonify(version), 202
+    except KeyError as e:
+        return jsonify({"error": str(e)}), 404
 
 
 @fakenodo_bp.route("/api/records/<record_id>/versions", methods=["GET"])
 def list_versions(record_id):
-    versions = service.list_versions(record_id)
-    return jsonify(versions), 200
+    try:
+        versions = service.list_versions(record_id)
+        return jsonify(versions), 200
+    except KeyError as e:
+        return jsonify({"error": str(e)}), 404
 
 
 @fakenodo_bp.route("/api/records/<record_id>/files", methods=["POST"])
