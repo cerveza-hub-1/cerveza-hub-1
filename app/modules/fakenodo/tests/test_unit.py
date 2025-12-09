@@ -109,9 +109,7 @@ def test_publish_record_route(client):
     create_resp = client.post("/fakenodo/api/records", json={"meta": {"title": "Test"}})
     record_id = create_resp.get_json()["id"]
 
-    publish_resp = client.post(
-        f"/fakenodo/api/records/{record_id}/actions/publish", json={"files": ["file1.txt"]}
-    )
+    publish_resp = client.post(f"/fakenodo/api/records/{record_id}/actions/publish", json={"files": ["file1.txt"]})
     assert publish_resp.status_code == 202
     version = publish_resp.get_json()
     assert version["published"] is True
