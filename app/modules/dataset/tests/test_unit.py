@@ -65,6 +65,7 @@ def test_get_most_downloaded_datasets_failure(client, monkeypatch):
     assert isinstance(data, dict)
     assert data.get("message") == "Failed to get ranking"
 
+
 # Test unitario para DataSetService.get_most_viewed_datasets que valida la lógica interna
 def test_get_most_viewed_datasets_unit():
     service = DataSetService()
@@ -80,8 +81,7 @@ def test_get_most_viewed_datasets_unit():
         MagicMock(id=7, title="Dataset G", doi="doi-g", views=2),
         MagicMock(id=8, title="Dataset H", doi="doi-h", views=1),
         MagicMock(id=9, title="Dataset I", doi="doi-i", views=0),
-        MagicMock(id=10, title="Dataset J", doi="doi-j", views=0)
-        
+        MagicMock(id=10, title="Dataset J", doi="doi-j", views=0),
     ]
 
     with patch("app.modules.dataset.services.db.session") as mock_session:
@@ -111,7 +111,6 @@ def test_get_most_viewed_datasets_unit():
         {"id": 8, "title": "Dataset H", "views": 1, "doi": "doi-h"},
         {"id": 9, "title": "Dataset I", "views": 0, "doi": "doi-i"},
         {"id": 10, "title": "Dataset J", "views": 0, "doi": "doi-j"},
-        
     ]
 
     # Validar llamadas clave
@@ -119,7 +118,8 @@ def test_get_most_viewed_datasets_unit():
     mock_query.limit.assert_called_once_with(10)
     mock_query.order_by.assert_called_once()
     mock_query.all.assert_called_once()
-    
+
+
 def test_get_most_downloaded_datasets_unit():
     service = DataSetService()
 
@@ -134,7 +134,7 @@ def test_get_most_downloaded_datasets_unit():
         MagicMock(id=7, title="Dataset G", doi="doi-g", downloads=2),
         MagicMock(id=8, title="Dataset H", doi="doi-h", downloads=1),
         MagicMock(id=9, title="Dataset I", doi="doi-i", downloads=0),
-        MagicMock(id=10, title="Dataset J", doi="doi-j", downloads=0)
+        MagicMock(id=10, title="Dataset J", doi="doi-j", downloads=0),
     ]
 
     with patch("app.modules.dataset.services.db.session") as mock_session:

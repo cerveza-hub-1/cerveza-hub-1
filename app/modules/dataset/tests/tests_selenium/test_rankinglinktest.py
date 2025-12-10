@@ -7,37 +7,37 @@ from selenium.webdriver.common.by import By
 from core.environment.host import get_host_for_selenium_testing
 from core.selenium.common import initialize_driver
 
-class TestRankinglinktest():
-  def setup_method(self, method):
+
+class TestRankinglinktest:
+    def setup_method(self, method):
         self.driver = initialize_driver()
         self.vars = {}
 
-  def teardown_method(self, method):
+    def teardown_method(self, method):
         self.driver.quit()
-  
-  def wait_for_window(self, timeout = 2):
-    time.sleep(round(timeout / 1000))
-    wh_now = self.driver.window_handles
-    wh_then = self.vars["window_handles"]
-    if len(wh_now) > len(wh_then):
-      return set(wh_now).difference(set(wh_then)).pop()
-  
-  def test_rankinglinktest(self):
-    self.driver.get(get_host_for_selenium_testing())
-    self.driver.maximize_window()
-    self.driver.find_element(By.LINK_TEXT, "Ranking").click()
-    self.vars["window_handles"] = self.driver.window_handles
-    self.driver.find_element(By.LINK_TEXT, "Sample dataset 4").click()
-    self.vars["win5115"] = self.wait_for_window(5000)
-    self.driver.switch_to.window(self.vars["win5115"])
-    self.driver.find_element(By.LINK_TEXT, "Ranking").click()
-    self.vars["window_handles"] = self.driver.window_handles
-    self.driver.find_element(By.LINK_TEXT, "Sample dataset 2").click()
-    self.vars["win9174"] = self.wait_for_window(5000)
-    self.driver.switch_to.window(self.vars["win9174"])
-    self.driver.find_element(By.LINK_TEXT, "Ranking").click()
-    self.vars["window_handles"] = self.driver.window_handles
-    self.driver.find_element(By.CSS_SELECTOR, "#views-table tr:nth-child(2) > td:nth-child(2) > a").click()
-    self.vars["win7694"] = self.wait_for_window(5000)
-    self.driver.switch_to.window(self.vars["win7694"])
-  
+
+    def wait_for_window(self, timeout=2):
+        time.sleep(round(timeout / 1000))
+        wh_now = self.driver.window_handles
+        wh_then = self.vars["window_handles"]
+        if len(wh_now) > len(wh_then):
+            return set(wh_now).difference(set(wh_then)).pop()
+
+    def test_rankinglinktest(self):
+        self.driver.get(get_host_for_selenium_testing())
+        self.driver.maximize_window()
+        self.driver.find_element(By.LINK_TEXT, "Ranking").click()
+        self.vars["window_handles"] = self.driver.window_handles
+        self.driver.find_element(By.LINK_TEXT, "Sample dataset 4").click()
+        self.vars["win5115"] = self.wait_for_window(5000)
+        self.driver.switch_to.window(self.vars["win5115"])
+        self.driver.find_element(By.LINK_TEXT, "Ranking").click()
+        self.vars["window_handles"] = self.driver.window_handles
+        self.driver.find_element(By.LINK_TEXT, "Sample dataset 2").click()
+        self.vars["win9174"] = self.wait_for_window(5000)
+        self.driver.switch_to.window(self.vars["win9174"])
+        self.driver.find_element(By.LINK_TEXT, "Ranking").click()
+        self.vars["window_handles"] = self.driver.window_handles
+        self.driver.find_element(By.CSS_SELECTOR, "#views-table tr:nth-child(2) > td:nth-child(2) > a").click()
+        self.vars["win7694"] = self.wait_for_window(5000)
+        self.driver.switch_to.window(self.vars["win7694"])
