@@ -1,12 +1,13 @@
 import re
 
 import unidecode
-from sqlalchemy import func,or_
+from sqlalchemy import func, or_
 
+from app import db
 from app.modules.csvmodel.models import CSVModel, FMMetaData
 from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
 from core.repositories.BaseRepository import BaseRepository
-from app import db
+
 
 class ExploreRepository(BaseRepository):
     def __init__(self):
