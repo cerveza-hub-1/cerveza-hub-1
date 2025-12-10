@@ -48,9 +48,6 @@ def test_get_most_viewed_datasets_success(client, monkeypatch):
     assert resp.get_json() == sample
 
 
-import app.modules.explore.routes as explore_routes
-
-
 def test_explore_post(client, monkeypatch):
 
     class FakeDataset:

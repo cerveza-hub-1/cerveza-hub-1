@@ -117,6 +117,7 @@ def test_filter_with_no_query(clean_database, build_dataset, repo):
 
     assert len(results) == 1
     assert results[0].id == ds1.id
+    assert results[0].id != ds2.id
 
 
 def test_filter_by_titulo(clean_database, build_dataset, repo):
