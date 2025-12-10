@@ -1,12 +1,12 @@
 import re
 
 import unidecode
-from sqlalchemy import or_
+from sqlalchemy import func,or_
 
 from app.modules.csvmodel.models import CSVModel, FMMetaData
 from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
 from core.repositories.BaseRepository import BaseRepository
-
+from app import db
 
 class ExploreRepository(BaseRepository):
     def __init__(self):
@@ -44,7 +44,20 @@ class ExploreRepository(BaseRepository):
         if description:
             datasets = datasets.filter(DSMetaData.description.ilike(f"%{description}%"))
         if authors:
-            datasets = datasets.filter(Author.name.ilike(f"%{authors}%"))
+            author_names = [a.strip() for a in authors.split(";") if a.strip()]
+
+            if len(author_names) == 1:
+                name = author_names[0]
+                datasets = datasets.filter(Author.name.ilike(f"%{name}%"))
+            else:
+                subq = (
+                    db.session.query(Author.ds_meta_data_id)
+                    .filter(or_(*[Author.name.ilike(f"%{name}%") for name in author_names]))
+                    .group_by(Author.ds_meta_data_id)
+                    .having(func.count(Author.id) >= len(author_names))
+                    .subquery()
+                )
+                datasets = datasets.filter(DSMetaData.id.in_(subq))
         if affiliation:
             datasets = datasets.filter(Author.affiliation.ilike(f"%{affiliation}%"))
         if orcid:
