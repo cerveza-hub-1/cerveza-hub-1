@@ -20,17 +20,51 @@ def validate_csv_content(file_content: str):
         if len(rows) == 0:
             return False, {"message": "CSV file is empty"}
 
-        # 4. Validar columnas
-        expected_cols = len(rows[0])
-        if expected_cols == 0:
-            return False, {"message": "CSV header is invalid"}
+        # 4. Validar cabecera
+        expected_header = ["id", "name", "brand", "style", "alcohol", "ibu", "origin"]
+        header = [cell.strip().lower() for cell in rows[0]]
+        if header != expected_header:
+            return False, {
+                "message": "Invalid CSV header",
+                "expected": expected_header,
+                "found": header,
+            }
 
-        for i, row in enumerate(rows, start=1):
-            if len(row) != expected_cols:
+        # 5. Validar filas
+        for i, row in enumerate(rows[1:], start=2):  # empezamos desde la fila 2 (después de la cabecera)
+            if len(row) != len(expected_header):
                 return False, {
                     "message": "Invalid CSV format",
-                    "error": f"Row {i} has {len(row)} columns but expected {expected_cols}.",
+                    "error": f"Row {i} has {len(row)} columns but expected {len(expected_header)}.",
                     "row": row,
+                }
+
+            # Validar alcohol
+            try:
+                alcohol = float(row[4])
+                if not (0 <= alcohol <= 100):
+                    return False, {
+                        "message": f"Invalid alcohol value in row {i}",
+                        "value": row[4],
+                    }
+            except ValueError:
+                return False, {
+                    "message": f"Alcohol must be a decimal number in row {i}",
+                    "value": row[4],
+                }
+
+            # Validar ibu
+            try:
+                ibu = int(row[5])
+                if not (0 <= ibu <= 100):
+                    return False, {
+                        "message": f"Invalid IBU value in row {i}",
+                        "value": row[5],
+                    }
+            except ValueError:
+                return False, {
+                    "message": f"IBU must be an integer in row {i}",
+                    "value": row[5],
                 }
 
     except Exception as e:

@@ -177,9 +177,7 @@ def test_publish_record_route(client):
 
 
 def test_publish_record_invalid_id(client):
-    response = client.post(
-        "/fakenodo/api/records/999/actions/publish", json={"files": ["file.txt"]}
-    )
+    response = client.post("/fakenodo/api/records/999/actions/publish", json={"files": ["file.txt"]})
     assert response.status_code == 404
 
 
@@ -187,17 +185,13 @@ def test_upload_files_route_json(client):
     create_resp = client.post("/fakenodo/api/records", json={"meta": {"title": "Test"}})
     record_id = create_resp.get_json()["id"]
 
-    response = client.post(
-        f"/fakenodo/api/records/{record_id}/files", json={"files": ["file1.txt"]}
-    )
+    response = client.post(f"/fakenodo/api/records/{record_id}/files", json={"files": ["file1.txt"]})
     assert response.status_code == 201
     assert "Files uploaded" in response.get_json()["message"]
 
 
 def test_upload_files_route_invalid_id(client):
-    response = client.post(
-        "/fakenodo/api/records/999/files", json={"files": ["file.txt"]}
-    )
+    response = client.post("/fakenodo/api/records/999/files", json={"files": ["file.txt"]})
     assert response.status_code == 404
 
 
@@ -264,9 +258,7 @@ def test_view_record_page_with_dataset(client):
 
         MockDSMetaData.query.filter_by.return_value.first.return_value = mock_ds_meta
 
-        create_resp = client.post(
-            "/fakenodo/api/records", json={"meta": {"title": "Test"}}
-        )
+        create_resp = client.post("/fakenodo/api/records", json={"meta": {"title": "Test"}})
         record_id = create_resp.get_json()["id"]
         client.post(
             f"/fakenodo/api/records/{record_id}/actions/publish",
@@ -287,17 +279,13 @@ def test_upload_files_raises_exception(client):
         "app.modules.fakenodo.routes.service.repository.get_or_404",
         side_effect=Exception("Simulated failure"),
     ):
-        response = client.post(
-            f"/fakenodo/api/records/{record_id}/files", json={"files": ["broken.txt"]}
-        )
+        response = client.post(f"/fakenodo/api/records/{record_id}/files", json={"files": ["broken.txt"]})
         assert response.status_code == 500
         assert "Simulated failure" in response.get_json()["error"]
 
 
 def test_view_record_page_exception(client):
-    with patch(
-        "app.modules.fakenodo.routes.service.get_record", side_effect=Exception("Boom")
-    ):
+    with patch("app.modules.fakenodo.routes.service.get_record", side_effect=Exception("Boom")):
         response = client.get("/fakenodo/records/999")
         assert response.status_code == 200
         assert b"Boom" in response.data or b"error" in response.data

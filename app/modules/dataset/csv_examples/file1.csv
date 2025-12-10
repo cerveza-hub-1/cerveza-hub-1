@@ -1,7 +1,7 @@
-Brand,Type,ABV,IBU,Country
-Heineken,Lager,5.0,19,Netherlands
-Budweiser,Lager,5.0,12,USA
-Corona,Lager,4.6,18,Mexico
-Stella Artois,Lager,5.2,24,Belgium
-Asahi,Lager,5.0,20,Japan
+id,name,brand,style,alcohol,ibu,origin
+1,Moonlight Stout,Nightfall Brewery,Stout,6.8,45,UK
+2,Ruby Red Ale,Nightfall Brewery,Red Ale,5.4,32,UK
+3,Citrus Haze IPA,Nightfall Brewery,IPA,6.2,55,UK
+4,Velvet Porter,Nightfall Brewery,Porter,5.9,40,UK
+5,Golden Wheat,Nightfall Brewery,Wheat Beer,4.9,20,UK
 
