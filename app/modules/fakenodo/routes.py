@@ -67,13 +67,16 @@ def upload_files(record_id):
                 if file not in latest_version["files"]:
                     latest_version["files"].append(file)
 
-        return jsonify(
-            {
-                "record_id": record_id,
-                "message": f"Files uploaded: {files}",
-                "files": files,
-            }
-        ), 201
+        return (
+            jsonify(
+                {
+                    "record_id": record_id,
+                    "message": f"Files uploaded: {files}",
+                    "files": files,
+                }
+            ),
+            201,
+        )
 
     except KeyError as e:
         return jsonify({"error": str(e)}), 404
@@ -134,9 +137,7 @@ def view_record_page(record_id):
                         {
                             "name": file.name,
                             "size": file.get_formatted_size(),
-                            "url": url_for(
-                                "hubfile.download_file", file_id=file.id, _external=True
-                            ),
+                            "url": url_for("hubfile.download_file", file_id=file.id, _external=True),
                             "source": "csvhub",
                         }
                     )
@@ -146,9 +147,7 @@ def view_record_page(record_id):
         fakenodo_files = []
         if record.get("files"):
             for filename in record["files"]:
-                fakenodo_files.append(
-                    {"name": filename, "size": "Unknown", "source": "fakenodo"}
-                )
+                fakenodo_files.append({"name": filename, "size": "Unknown", "source": "fakenodo"})
 
         # NO generar placeholders - si no hay archivos, mostrar vacío
         # (eliminamos la generación automática)

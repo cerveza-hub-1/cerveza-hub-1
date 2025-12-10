@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 class FakenodoService(BaseService):
     def __init__(self):
         super().__init__(FakenodoRepository())
-        self.FAKENODO_URL = os.getenv(
-            "FAKENODO_URL", "http://localhost:5000/fakenodo/api/records"
-        )
+        self.FAKENODO_URL = os.getenv("FAKENODO_URL", "http://localhost:5000/fakenodo/api/records")
 
     def create_record(self, metadata: dict) -> dict:
         record = self.repository.create(meta=metadata)
