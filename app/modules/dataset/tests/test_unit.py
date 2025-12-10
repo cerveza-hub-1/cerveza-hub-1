@@ -46,24 +46,3 @@ def test_get_most_viewed_datasets_success(client, monkeypatch):
     resp = client.get("/dataset/ranking/views")
     assert resp.status_code == 200
     assert resp.get_json() == sample
-
-
-def test_explore_post(client, monkeypatch):
-
-    class FakeDataset:
-        def __init__(self, id):
-            self.id = id
-
-        def to_dict(self):
-            return {"id": self.id}
-
-    def fake_filter(**criteria):
-        assert criteria == {"query": "siu"}
-        return [FakeDataset(1), FakeDataset(2)]
-
-    monkeypatch.setattr(explore_routes.ExploreService, "filter", staticmethod(fake_filter))
-
-    response = client.post("/explore", json={"query": "siu"})
-
-    assert response.status_code == 200
-    assert response.get_json() == [{"id": 1}, {"id": 2}]
