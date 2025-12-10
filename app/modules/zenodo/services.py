@@ -1,6 +1,5 @@
 import logging
 import os
-import uuid
 
 import requests
 from dotenv import load_dotenv
@@ -43,7 +42,7 @@ class ZenodoService(BaseService):
     def __init__(self):
         super().__init__(ZenodoRepository())
         self.ZENODO_API_URL = self.get_zenodo_url()
-        self.is_fakenodo = bool(os.getenv("FAKENODO_URL"))
+        self.is_fakenodo = "FAKENODO_URL" in os.environ
         self.headers = {"Content-Type": "application/json"}
         self.params = {} if self.is_fakenodo else {"access_token": self.get_zenodo_access_token()}
 
@@ -137,38 +136,27 @@ class ZenodoService(BaseService):
         return response.json()
 
     def create_new_deposition(self, dataset: DataSet) -> dict:
-        """
-        Create a new deposition in Zenodo or Fakenodo.
-        """
-        logger.info("Dataset sending to Zenodo/Fakenodo...")
-        logger.info(f"Publication type...{dataset.ds_meta_data.publication_type.value}")
-
         metadata = {
             "title": dataset.ds_meta_data.title,
-            "upload_type": "dataset" if dataset.ds_meta_data.publication_type.value == "none" else "publication",
-            "publication_type": (
-                dataset.ds_meta_data.publication_type.value
-                if dataset.ds_meta_data.publication_type.value != "none"
-                else None
-            ),
+            "upload_type": "dataset",
             "description": dataset.ds_meta_data.description,
-            "creators": [{"name": author.name} for author in dataset.ds_meta_data.authors],
+            "creators": [{"name": a.name} for a in dataset.ds_meta_data.authors],
             "keywords": (
-                ["csvhub"] if not dataset.ds_meta_data.tags else dataset.ds_meta_data.tags.split(", ") + ["csvhub"]
+                dataset.ds_meta_data.tags.split(", ") + ["csvhub"]
+                if dataset.ds_meta_data.tags else ["csvhub"]
             ),
             "access_right": "open",
             "license": "CC-BY-4.0",
         }
 
         if self.is_fakenodo:
-            data = {"meta": metadata}
-            response = requests.post(self.ZENODO_API_URL, json=data, headers=self.headers)
+            response = requests.post(self.ZENODO_API_URL, json={"meta": metadata})
         else:
-            data = {"metadata": metadata}
-            response = requests.post(self.ZENODO_API_URL, params=self.params, json=data, headers=self.headers)
+            response = requests.post(self.ZENODO_API_URL, json={"metadata": metadata}, params=self.params)
 
         if response.status_code not in (200, 201):
-            raise Exception(f"Failed to create deposition. Error details: {response.text}")
+            raise Exception(f"Error creating deposition: {response.text}")
+
         return response.json()
 
     def upload_file(self, dataset: DataSet, deposition_id: int, csv_model: CSVModel, user=None) -> dict:
@@ -180,17 +168,9 @@ class ZenodoService(BaseService):
         file_path = os.path.join(uploads_folder_name(), f"user_{str(user_id)}", f"dataset_{dataset.id}/", csv_filename)
 
         if self.is_fakenodo:
-            # Simulación: no existe /files en fakenodo, devolvemos respuesta simulada
-            return {
-                "id": deposition_id,
-                "doi": f"10.9999/fakenodo.{uuid.uuid4().hex[:6]}",
-                "published": True,
-                "meta": {
-                    "title": dataset.ds_meta_data.title,
-                    "description": dataset.ds_meta_data.description,
-                },
-                "files": [csv_filename],
-            }
+            url = f"{self.ZENODO_API_URL}/{deposition_id}/files"
+            response = requests.post(url, json={"files": [csv_filename]})
+            return response.json()
 
         # --- Zenodo real ---
         data = {"name": csv_filename}
@@ -210,12 +190,9 @@ class ZenodoService(BaseService):
         Publish a deposition in Zenodo or Fakenodo.
         """
         if self.is_fakenodo:
-            # Simulación: devolvemos directamente DOI y published
-            return {
-                "id": deposition_id,
-                "doi": f"10.9999/fakenodo.{uuid.uuid4().hex[:6]}",
-                "published": True,
-            }
+            url = f"{self.ZENODO_API_URL}/{deposition_id}/actions/publish"
+            response = requests.post(url, json={"files": []})
+            return response.json()
 
         # --- Zenodo real ---
         publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/actions/publish"
@@ -236,13 +213,9 @@ class ZenodoService(BaseService):
             dict: The response in JSON format with the details of the deposition.
         """
         if self.is_fakenodo:
-            # Simulación: devolver un depósito publicado con DOI
-            return {
-                "id": deposition_id,
-                "doi": f"10.9999/fakenodo.{uuid.uuid4().hex[:6]}",
-                "published": True,
-                "meta": {"title": "Simulated dataset", "description": "Stored in fakenodo"},
-            }
+            url = f"{self.ZENODO_API_URL}/{deposition_id}"
+            response = requests.get(url)
+            return response.json()
 
         deposition_url = f"{self.ZENODO_API_URL}/{deposition_id}"
         response = requests.get(deposition_url, params=self.params, headers=self.headers)
@@ -251,13 +224,20 @@ class ZenodoService(BaseService):
         return response.json()
 
     def get_doi(self, deposition_id: int) -> str:
-        """
-        Get the DOI of a deposition from Zenodo.
+        depo = self.get_deposition(deposition_id)
+        return depo.get("doi")
 
-        Args:
-            deposition_id (int): The ID of the deposition in Zenodo.
-
-        Returns:
-            str: The DOI of the deposition.
+    def get_record_url(self, deposition_id: int) -> str:
         """
-        return self.get_deposition(deposition_id).get("doi")
+        Get the URL for viewing a record, whether in Zenodo or Fakenodo.
+        """
+        if self.is_fakenodo:
+            fakenodo_url = os.getenv("FAKENODO_URL", "http://localhost:5000/fakenodo/api/records")
+            return fakenodo_url.replace('/api/records', '/records') + f"/{deposition_id}"
+
+        # Para Zenodo real
+        FLASK_ENV = os.getenv("FLASK_ENV", "development")
+        if FLASK_ENV == "production":
+            return f"https://zenodo.org/records/{deposition_id}"
+        else:
+            return f"https://sandbox.zenodo.org/records/{deposition_id}"
