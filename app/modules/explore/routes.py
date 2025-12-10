@@ -18,4 +18,4 @@ def index():
             datasets = ExploreService().filter(**criteria)
             return jsonify([dataset.to_dict() for dataset in datasets])
     except Exception as e:
-        return jsonify({"message": "Internal server error"}), 500
+        return jsonify({"message": str(e)}), 500
