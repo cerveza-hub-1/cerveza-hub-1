@@ -144,7 +144,7 @@
 
             </div>
 
-            {% if dataset.ds_meta_data.dataset_doi %}
+            {% if dataset and dataset.ds_meta_data and dataset.ds_meta_data.dataset_doi %}
             <div class="card-body pt-0">
 
                 <div id="dataset_doi_uvlhub" style="display:none">{{ dataset.get_csvhub_doi() }}</div>
@@ -240,7 +240,7 @@
                     <i data-feather="code"></i> View JSON API
                 </a>
 
-                {% if dataset and dataset.ds_meta_data.dataset_doi %}
+                {% if dataset and dataset.ds_meta_data and dataset.ds_meta_data.dataset_doi %}
                 <a href="/doi/{{ dataset.ds_meta_data.dataset_doi }}" 
                     class="btn btn-primary btn-sm mb-2 option-button">
                     <i data-feather="database"></i> View Dataset in Cerveza Hub
