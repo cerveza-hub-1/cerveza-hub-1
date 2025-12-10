@@ -58,7 +58,8 @@ class ExploreRepository(BaseRepository):
                     .having(func.count(Author.id) >= len(author_names))
                     .subquery()
                 )
-                datasets = datasets.filter(DSMetaData.id.in_(subq))
+                datasets = datasets.filter(DSMetaData.id.in_(subq.select()))
+
         if affiliation:
             datasets = datasets.filter(Author.affiliation.ilike(f"%{affiliation}%"))
         if orcid:

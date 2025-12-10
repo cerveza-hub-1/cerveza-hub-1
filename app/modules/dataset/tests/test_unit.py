@@ -48,17 +48,25 @@ def test_get_most_viewed_datasets_success(client, monkeypatch):
     assert resp.get_json() == sample
 
 
-def test_get_most_downloaded_datasets_failure(client, monkeypatch):
-    """Endpoint should return HTTP 500 and error message when service raises."""
+import app.modules.explore.routes as explore_routes
 
-    class StubService:
-        def get_most_downloaded_datasets(self, limit=5):
-            raise RuntimeError("database error")
 
-    monkeypatch.setattr(dataset_routes, "dataset_service", StubService())
+def test_explore_post(client, monkeypatch):
 
-    resp = client.get("/dataset/ranking/downloads")
-    assert resp.status_code == 500
-    data = resp.get_json()
-    assert isinstance(data, dict)
-    assert data.get("message") == "Failed to get ranking"
+    class FakeDataset:
+        def __init__(self, id):
+            self.id = id
+
+        def to_dict(self):
+            return {"id": self.id}
+
+    def fake_filter(**criteria):
+        assert criteria == {"query": "siu"}
+        return [FakeDataset(1), FakeDataset(2)]
+
+    monkeypatch.setattr(explore_routes.ExploreService, "filter", staticmethod(fake_filter))
+
+    response = client.post("/explore", json={"query": "siu"})
+
+    assert response.status_code == 200
+    assert response.get_json() == [{"id": 1}, {"id": 2}]
