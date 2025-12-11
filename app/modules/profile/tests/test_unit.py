@@ -204,7 +204,7 @@ def test_verify_2fa_post_fail_invalid_token_redirect(test_client):
 
 
 """
-Este test ha sido comentado ya que en el enntorno local si se ejecuta sin problemas, 
+Este test ha sido comentado ya que en el enntorno local si se ejecuta sin problemas,
 pero en CI/CD falla y tras muchas pruebas no se ha podido determinar la causa raíz.
 
 
