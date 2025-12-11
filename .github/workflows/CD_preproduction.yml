@@ -5,6 +5,7 @@ on:
     workflows:
       - Codacy CI
       - Python Lint
+      - Ansible Syntax Check
     types:
       - completed
     branches:

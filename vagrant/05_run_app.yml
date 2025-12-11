@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: 5. RUN APP - Setup App Context and Start Server
+  hosts: all
   become: true
 
   vars:
@@ -15,17 +16,20 @@
       MARIADB_PASSWORD: "{{ mariadb_password }}"
       MARIADB_ROOT_PASSWORD: "{{ mariadb_root_password }}"
       WORKING_DIR: "{{ working_dir }}"
+      FERNET_KEY: "{{ fernet_key }}"
+      FAKENODO_URL: "{{ fakenodo_url }}"
 
   tasks:
 
     - name: Add webhook to .moduleignore
-      shell: echo "webhook" > {{ working_dir }}.moduleignore
+      ansible.builtin.shell: echo "webhook" > {{ working_dir }}.moduleignore
       args:
         executable: /bin/bash
       environment: "{{ common_environment }}"
+      changed_when: false
 
     - name: Set database with Rosemary
-      shell: |
+      ansible.builtin.shell: |
         source {{ working_dir }}vagrant_venv/bin/activate
         cd {{ working_dir }}
         flask db upgrade
@@ -33,9 +37,10 @@
       args:
         executable: /bin/bash
       environment: "{{ common_environment }}"
+      changed_when: true # Forzamos changed_when: true ya que modifica la DB
 
     - name: Run Flask application
-      shell: |
+      ansible.builtin.shell: |
         source {{ working_dir }}vagrant_venv/bin/activate
         cd {{ working_dir }}
         nohup flask run --host=0.0.0.0 --port=5000 --reload --debug > app.log 2>&1 &
@@ -44,3 +49,9 @@
       environment: "{{ common_environment }}"
       async: 1
       poll: 0
+      changed_when: true # Asumimos que el proceso cambia si se lanza
+
+    - name: Remove old app.log files
+      ansible.builtin.file:
+        path: "{{ working_dir }}app.log.*"
+        state: absent
