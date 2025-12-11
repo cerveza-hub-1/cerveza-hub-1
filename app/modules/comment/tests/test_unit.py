@@ -56,6 +56,7 @@ class DummyRepo:
         self._store[id] = obj
         return obj
 
+
 # ============================================================
 # Tests Unitarios de CommentService
 # ============================================================
@@ -279,7 +280,7 @@ def test_delete_comment_success(client, monkeypatch):
     """DELETE debe permitir borrar comentarios cuando el usuario es autor del dataset"""
 
     class DummyDataset:
-        user_id = 10   # mismo que current_user
+        user_id = 10  # mismo que current_user
 
     class DummyComment:
         data_set = DummyDataset()
