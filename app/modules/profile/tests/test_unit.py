@@ -82,9 +82,7 @@ def test_edit_profile_post_success(test_client):
         mock_service_instance.update_profile.return_value = (mock_profile_updated, None)
 
         # Simulamos que handle_service_response devuelve la redirección esperada
-        mock_service_instance.handle_service_response.return_value = redirect(
-            url_for("profile.my_profile")
-        )
+        mock_service_instance.handle_service_response.return_value = redirect(url_for("profile.my_profile"))
 
         # 3. Enviar POST
         response = test_client.post(
@@ -173,9 +171,7 @@ def test_verify_2fa_post_fail_no_secret_redirect(test_client):
         profile.save()
 
     # 2. Intentar POST de verificación
-    response = test_client.post(
-        "/profile/verify-2fa", data=dict(token="123456"), follow_redirects=False
-    )
+    response = test_client.post("/profile/verify-2fa", data=dict(token="123456"), follow_redirects=False)
 
     # Debe redirigir a enable_2fa
     assert response.status_code == 302
@@ -198,9 +194,7 @@ def test_verify_2fa_post_fail_invalid_token_redirect(test_client):
 
     # 2. Intentar verificar con token inválido
     invalid_token = "000000"
-    response = test_client.post(
-        "/profile/verify-2fa", data=dict(token=invalid_token), follow_redirects=False
-    )
+    response = test_client.post("/profile/verify-2fa", data=dict(token=invalid_token), follow_redirects=False)
 
     # Debe redirigir a enable_2fa
     assert response.status_code == 302
@@ -223,7 +217,7 @@ def test_verify_2fa_post_success(test_client):
 
         db.session.commit()
         db.session.flush()
-        db.session.expire_all()
+        db.session.commit()
 
         # Usamos un token simbólico, ya que la verificación será mockeada
         symbolic_token = "999999"
@@ -290,9 +284,7 @@ def test_view_public_profile_datasets(test_client):
     assert response.status_code == 200
     assert b"Dataset 1" in response.data
     assert b"Dataset 2" in response.data
-    assert (
-        b"Enable" not in response.data and b"Disable" not in response.data
-    )  # Comprobar no están controles 2FA
+    assert b"Enable" not in response.data and b"Disable" not in response.data  # Comprobar no están controles 2FA
 
     logout(test_client)
 
@@ -391,18 +383,12 @@ def test_verify_2fa_success(test_client, monkeypatch):
     db.session.add(profile)
     db.session.commit()
 
-    monkeypatch.setattr(
-        "app.modules.auth.repositories.UserRepository.get_by_id", lambda self, id: user
-    )
+    monkeypatch.setattr("app.modules.auth.repositories.UserRepository.get_by_id", lambda self, id: user)
     monkeypatch.setattr("pyotp.TOTP.verify", lambda self, token: True)
 
-    test_client.session_transaction(
-        lambda s: s.__setitem__("pending_2fa_user_id", user.id)
-    )
+    test_client.session_transaction(lambda s: s.__setitem__("pending_2fa_user_id", user.id))
 
-    resp = test_client.post(
-        "/verify-2fa", data={"token": "123456"}, follow_redirects=False
-    )
+    resp = test_client.post("/verify-2fa", data={"token": "123456"}, follow_redirects=False)
 
     assert resp.status_code == 302
 
