@@ -311,9 +311,7 @@ def make_dataset_and_csv(tmp_path):
 
     # Crear archivo en la ruta esperada
     user_id = 1
-    file_dir = os.path.join(
-        uploads_folder_name(), f"user_{user_id}", f"dataset_{dataset.id}"
-    )
+    file_dir = os.path.join(uploads_folder_name(), f"user_{user_id}", f"dataset_{dataset.id}")
     os.makedirs(file_dir, exist_ok=True)
     file_path = os.path.join(file_dir, fm_meta.csv_filename)
     with open(file_path, "w") as f:
@@ -333,9 +331,7 @@ def test_upload_file_zenodo_real_success(monkeypatch, tmp_path):
         mock_post.return_value.status_code = 201
         mock_post.return_value.json.return_value = {"uploaded": True}
 
-        result = service.upload_file(
-            dataset, 123, csv_model, user=MagicMock(id=user_id)
-        )
+        result = service.upload_file(dataset, 123, csv_model, user=MagicMock(id=user_id))
         assert result["uploaded"] is True
 
 
