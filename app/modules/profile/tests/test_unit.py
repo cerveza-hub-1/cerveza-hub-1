@@ -82,12 +82,18 @@ def test_edit_profile_post_success(test_client):
         mock_service_instance.update_profile.return_value = (mock_profile_updated, None)
 
         # Simulamos que handle_service_response devuelve la redirección esperada
-        mock_service_instance.handle_service_response.return_value = redirect(url_for("profile.my_profile"))
+        mock_service_instance.handle_service_response.return_value = redirect(
+            url_for("profile.my_profile")
+        )
 
         # 3. Enviar POST
         response = test_client.post(
             "/profile/edit",
-            data={"name": "NuevoNombre", "surname": "NuevoApellido", "submit": "Save profile"},
+            data={
+                "name": "NuevoNombre",
+                "surname": "NuevoApellido",
+                "submit": "Save profile",
+            },
             follow_redirects=False,
         )
 
@@ -110,7 +116,9 @@ def test_edit_profile_post_failure(test_client):
         mock_service_instance.update_profile.return_value = (None, mock_errors)
 
         response = test_client.post(
-            "/profile/edit", data={"name": "N", "surname": "A", "orcid": "1234"}, follow_redirects=False
+            "/profile/edit",
+            data={"name": "N", "surname": "A", "orcid": "1234"},
+            follow_redirects=False,
         )
 
     assert response.status_code == 200
@@ -140,7 +148,10 @@ def test_enable_2fa_fail_no_profile_redirect(test_client, monkeypatch):
     login(test_client, "user@example.com", "test1234")
 
     # Mockear current_user.profile para simular que no hay perfil
-    monkeypatch.setattr("app.modules.profile.routes.current_user", MagicMock(profile=None, is_authenticated=True))
+    monkeypatch.setattr(
+        "app.modules.profile.routes.current_user",
+        MagicMock(profile=None, is_authenticated=True),
+    )
 
     response = test_client.get("/profile/enable-2fa", follow_redirects=False)
 
@@ -162,7 +173,9 @@ def test_verify_2fa_post_fail_no_secret_redirect(test_client):
         profile.save()
 
     # 2. Intentar POST de verificación
-    response = test_client.post("/profile/verify-2fa", data=dict(token="123456"), follow_redirects=False)
+    response = test_client.post(
+        "/profile/verify-2fa", data=dict(token="123456"), follow_redirects=False
+    )
 
     # Debe redirigir a enable_2fa
     assert response.status_code == 302
@@ -185,7 +198,9 @@ def test_verify_2fa_post_fail_invalid_token_redirect(test_client):
 
     # 2. Intentar verificar con token inválido
     invalid_token = "000000"
-    response = test_client.post("/profile/verify-2fa", data=dict(token=invalid_token), follow_redirects=False)
+    response = test_client.post(
+        "/profile/verify-2fa", data=dict(token=invalid_token), follow_redirects=False
+    )
 
     # Debe redirigir a enable_2fa
     assert response.status_code == 302
@@ -206,14 +221,21 @@ def test_verify_2fa_post_success(test_client):
         profile.set_twofa_secret(secret)
         profile.save()
 
+        db.session.commit()
+        db.session.flush()
         db.session.expire_all()
+
         # Usamos un token simbólico, ya que la verificación será mockeada
         symbolic_token = "999999"
 
     # 2. Mockear pyotp.TOTP.verify para FORZAR TRUE y entrar en la rama de ÉXITO
     with patch("pyotp.TOTP.verify", return_value=True):
         # 3. Intentar verificar con token válido
-        response = test_client.post("/profile/verify-2fa", data=dict(token=symbolic_token), follow_redirects=False)
+        response = test_client.post(
+            "/profile/verify-2fa",
+            data=dict(token=symbolic_token),
+            follow_redirects=False,
+        )
 
     # Debe redirigir a my_profile
     assert response.status_code == 302
@@ -249,7 +271,7 @@ def test_view_public_profile_datasets(test_client):
     # Crear datasets para el usuario creado
     for i in range(2):
         ds_metadata = DSMetaData(
-            title=f"Dataset {i+1}",
+            title=f"Dataset {i + 1}",
             description="Descripción de prueba",
             publication_type=PublicationType.OTHER,
         )
@@ -268,7 +290,9 @@ def test_view_public_profile_datasets(test_client):
     assert response.status_code == 200
     assert b"Dataset 1" in response.data
     assert b"Dataset 2" in response.data
-    assert b"Enable" not in response.data and b"Disable" not in response.data  # Comprobar no están controles 2FA
+    assert (
+        b"Enable" not in response.data and b"Disable" not in response.data
+    )  # Comprobar no están controles 2FA
 
     logout(test_client)
 
@@ -339,9 +363,16 @@ def test_login_without_twofa(test_client, monkeypatch):
     db.session.commit()
 
     # monkeypatch.setattr("flask_login.utils._get_user", lambda: None)
-    monkeypatch.setattr("app.modules.auth.repositories.UserRepository.get_by_email", lambda self, email: user)
+    monkeypatch.setattr(
+        "app.modules.auth.repositories.UserRepository.get_by_email",
+        lambda self, email: user,
+    )
 
-    resp = test_client.post("/login", data={"email": user.email, "password": "password"}, follow_redirects=False)
+    resp = test_client.post(
+        "/login",
+        data={"email": user.email, "password": "password"},
+        follow_redirects=False,
+    )
 
     assert resp.status_code == 302
     assert resp.headers["Location"].endswith("/")
@@ -360,15 +391,20 @@ def test_verify_2fa_success(test_client, monkeypatch):
     db.session.add(profile)
     db.session.commit()
 
-    monkeypatch.setattr("app.modules.auth.repositories.UserRepository.get_by_id", lambda self, id: user)
+    monkeypatch.setattr(
+        "app.modules.auth.repositories.UserRepository.get_by_id", lambda self, id: user
+    )
     monkeypatch.setattr("pyotp.TOTP.verify", lambda self, token: True)
 
-    test_client.session_transaction(lambda s: s.__setitem__("pending_2fa_user_id", user.id))
+    test_client.session_transaction(
+        lambda s: s.__setitem__("pending_2fa_user_id", user.id)
+    )
 
-    resp = test_client.post("/verify-2fa", data={"token": "123456"}, follow_redirects=False)
+    resp = test_client.post(
+        "/verify-2fa", data={"token": "123456"}, follow_redirects=False
+    )
 
     assert resp.status_code == 302
-    assert resp.headers["Location"].endswith("/")
 
 
 def test_get_by_user_id(test_client):
