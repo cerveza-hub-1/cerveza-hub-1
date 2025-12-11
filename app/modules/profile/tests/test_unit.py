@@ -217,7 +217,7 @@ def test_verify_2fa_post_success(test_client):
 
         db.session.commit()
 
-        db.session.expire_all()
+        db.session.refresh(profile)
 
         # Usamos un token simbólico, ya que la verificación será mockeada
         symbolic_token = "999999"
