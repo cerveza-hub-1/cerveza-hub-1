@@ -1,8 +1,7 @@
-from datetime import datetime
+
 
 import pytest
 
-import app.modules.explore.routes as explore_routes
 from app import create_app, db
 from app.modules.auth.models import User
 from app.modules.csvmodel.models import CSVModel, FMMetaData
