@@ -1,7 +1,13 @@
 ---
-- import_playbook: 01_setup.yml
-- import_playbook: 02_install_mariadb.yml
-- import_playbook: 03_mariadb_scripts.yml
-- import_playbook: 04_install_dependencies.yml
-- import_playbook: 05_run_app.yml
-- import_playbook: 06_utilities.yml
+- name: 1. Setup Playbook
+  import_playbook: 01_setup.yml
+- name: 2. Install MariaDB Playbook
+  import_playbook: 02_install_mariadb.yml
+- name: 3. MariaDB Scripts Playbook
+  import_playbook: 03_mariadb_scripts.yml
+- name: 4. Install Dependencies Playbook
+  import_playbook: 04_install_dependencies.yml
+- name: 5. Run App Playbook
+  import_playbook: 05_run_app.yml
+- name: 6. Utilities Playbook
+  import_playbook: 06_utilities.yml
