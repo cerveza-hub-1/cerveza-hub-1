@@ -2,7 +2,7 @@ import pytest
 
 from app import create_app, db
 from app.modules.auth.models import User
-from app.modules.dataset.models import DataSet, DSMetaData, DSDownloadRecord, DSViewRecord, PublicationType
+from app.modules.dataset.models import DataSet, DSDownloadRecord, DSMetaData, DSViewRecord, PublicationType
 
 
 @pytest.fixture(scope="function")

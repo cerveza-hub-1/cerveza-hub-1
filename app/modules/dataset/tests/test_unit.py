@@ -1,8 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 import app.modules.dataset.routes as dataset_routes
 from app import create_app
-from unittest.mock import MagicMock, patch
 from app.modules.dataset.services import DataSetService
 
 
