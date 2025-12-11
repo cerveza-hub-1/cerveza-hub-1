@@ -419,10 +419,10 @@ def test_verify_2fa_success(test_client):
 
     token = pyotp.TOTP(secret).now()
     response = test_client.post("/verify-2fa", data=dict(token=token), follow_redirects=True)
-
+    
+    assert response.request.path == url_for("public.index"), "La verificación 2FA exitosa no redirigió a la página principal."
     assert response.status_code == 200
-    assert b"Index" in response.data or b"Home" in response.data
-
+    assert b"Index" in response.data or b"Home" in response.data  # Comprobar contenido de la página de inicio
 
 def test_2fa_verify_fail_token(clean_database):
     # Creamos otro usuario con 2FA activado

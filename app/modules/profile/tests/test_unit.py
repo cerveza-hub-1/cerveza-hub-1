@@ -21,16 +21,14 @@ authentication_service = AuthenticationService()
 
 @pytest.fixture(scope="module")
 def test_client(test_client):
+    db.session.rollback()
     with test_client.application.app_context():
-
-        # 1) Crear usuario si no existe
         user_test = User.query.filter_by(email="user@example.com").first()
         if user_test is None:
             user_test = User(email="user@example.com", password="test1234")
             db.session.add(user_test)
             db.session.commit()
 
-        # 2) Crear perfil si no existe
         profile = UserProfile.query.filter_by(user_id=user_test.id).first()
         if profile is None:
             profile = UserProfile(user_id=user_test.id, name="Name", surname="Surname")
@@ -44,7 +42,7 @@ def test_client(test_client):
 
 # --- Funciones auxiliares para asegurar el User/Profile en tests ---
 def get_fresh_user_and_profile(email="user@example.com"):
-    # Recarga el usuario y su perfil en la sesión actual
+    db.session.rollback()
     user = User.query.filter_by(email=email).first()
     if user and user.profile is None:
         raise Exception("User found but profile is missing!")
@@ -53,15 +51,13 @@ def get_fresh_user_and_profile(email="user@example.com"):
 
 # --- Tests para /profile/edit (Edición de Perfil) ---
 def test_edit_profile_fail_no_profile_redirect(test_client, monkeypatch):
-    # 1. Loguear un usuario
+    db.session.rollback()
     login(test_client, "user@example.com", "test1234")
 
     with patch("app.modules.profile.routes.AuthenticationService") as MockAuthService:
-        # 2. Configurar la instancia mockeada para que get_authenticated_user_profile() devuelva None
         mock_auth_service_instance = MockAuthService.return_value
         mock_auth_service_instance.get_authenticated_user_profile.return_value = None
 
-        # 3. Intentar acceder a /profile/edit
         response = test_client.get("/profile/edit", follow_redirects=False)
 
     assert response.status_code == 302
@@ -71,6 +67,7 @@ def test_edit_profile_fail_no_profile_redirect(test_client, monkeypatch):
 
 
 def test_edit_profile_post_success(test_client):
+    db.session.rollback()
     login(test_client, "user@example.com", "test1234")
 
     # Obtenemos el ID del perfil actual
@@ -101,6 +98,7 @@ def test_edit_profile_post_success(test_client):
 
 
 def test_edit_profile_post_failure(test_client):
+    db.session.rollback()
     login(test_client, "user@example.com", "test1234")
 
     # 2. Mockear el servicio para simular la actualización fallida
@@ -125,6 +123,7 @@ def test_edit_profile_post_failure(test_client):
 
 
 def test_enable_2fa_page_get_success(test_client):
+    db.session.rollback()
     user_email = "user@example.com"
     login(test_client, user_email, "test1234")
 
@@ -137,6 +136,7 @@ def test_enable_2fa_page_get_success(test_client):
 
 
 def test_enable_2fa_fail_no_profile_redirect(test_client, monkeypatch):
+    db.session.rollback()
     login(test_client, "user@example.com", "test1234")
 
     # Mockear current_user.profile para simular que no hay perfil
@@ -151,6 +151,7 @@ def test_enable_2fa_fail_no_profile_redirect(test_client, monkeypatch):
 
 
 def test_verify_2fa_post_fail_no_secret_redirect(test_client):
+    db.session.rollback()
     user_email = "user@example.com"
     login(test_client, user_email, "test1234")
 
@@ -171,6 +172,7 @@ def test_verify_2fa_post_fail_no_secret_redirect(test_client):
 
 
 def test_verify_2fa_post_fail_invalid_token_redirect(test_client):
+    db.session.rollback()
     user_email = "user@example.com"
     login(test_client, user_email, "test1234")
 
@@ -193,6 +195,7 @@ def test_verify_2fa_post_fail_invalid_token_redirect(test_client):
 
 
 def test_verify_2fa_post_success(test_client):
+    db.session.rollback()
     user_email = "user@example.com"
     login(test_client, user_email, "test1234")
 
@@ -369,6 +372,7 @@ def test_verify_2fa_success(test_client, monkeypatch):
 
 
 def test_get_by_user_id(test_client):
+    db.session.rollback()
     with test_client.application.app_context():
         user, _ = get_fresh_user_and_profile()
         repo = UserProfileRepository()
