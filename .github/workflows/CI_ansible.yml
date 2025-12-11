@@ -32,9 +32,9 @@ jobs:
         # Verifica la sintaxis del playbook principal
       - name: Check Ansible Playbook Syntax (00_main.yml)
         run: |
-          ansible-playbook 00_main.yml --syntax-check
+          ansible-playbook vagrant/00_main.yml --syntax-check
         working-directory: ./
         
       - name: Run Ansible Lint
-        run: ansible-lint 00_main.yml
+        run: ansible-lint vagrant/00_main.yml
         working-directory: ./
