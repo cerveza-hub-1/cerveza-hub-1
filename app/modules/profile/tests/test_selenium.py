@@ -76,9 +76,7 @@ def test_profile_summary_loads():
         print("Test passed! (test_profile_summary_loads)")
 
     except NoSuchElementException:
-        raise AssertionError(
-            "Profile summary page did not load or the user data is missing."
-        )
+        raise AssertionError("Profile summary page did not load or the user data is missing.")
 
     finally:
         close_driver(driver)
@@ -113,9 +111,7 @@ def test_edit_profile_success():
     host = get_host_for_selenium_testing()
 
     # Datos para actualizar
-    new_name = (
-        "NewNameUpdated"  # Cambiamos un poco los datos para asegurar la actualización
-    )
+    new_name = "NewNameUpdated"  # Cambiamos un poco los datos para asegurar la actualización
     new_surname = "NewSurnameUpdated"
     new_orcid = "0000-0002-1825-0000"
     new_affiliation = "Tech University Updated"
@@ -147,37 +143,27 @@ def test_edit_profile_success():
 
         current_url = driver.current_url
 
-        assert current_url.endswith("/profile/edit"), (
-            f"Unexpected redirection to: {current_url}. Expected to stay on /profile/edit"
-        )
+        assert current_url.endswith(
+            "/profile/edit"
+        ), f"Unexpected redirection to: {current_url}. Expected to stay on /profile/edit"
 
-        driver.find_element(
-            By.XPATH, "//*[contains(text(), 'Profile updated successfully')]"
-        )
+        driver.find_element(By.XPATH, "//*[contains(text(), 'Profile updated successfully')]")
 
         name_value = driver.find_element(By.NAME, "name").get_attribute("value")
         surname_value = driver.find_element(By.NAME, "surname").get_attribute("value")
-        affiliation_value = driver.find_element(By.NAME, "affiliation").get_attribute(
-            "value"
-        )
+        affiliation_value = driver.find_element(By.NAME, "affiliation").get_attribute("value")
         orcid_value = driver.find_element(By.NAME, "orcid").get_attribute("value")
 
-        assert name_value == new_name, (
-            f"Name not updated in form field. Expected: {new_name}, Got: {name_value}"
-        )
-        assert surname_value == new_surname, (
-            f"Surname not updated in form field. Expected: {new_surname}, Got: {surname_value}"
-        )
-        assert affiliation_value == new_affiliation, (
-            f"Affiliation not updated in form field. Expected: {new_affiliation}, Got: {affiliation_value}"
-        )
-        assert orcid_value == new_orcid, (
-            f"ORCID not updated in form field. Expected: {new_orcid}, Got: {orcid_value}"
-        )
+        assert name_value == new_name, f"Name not updated in form field. Expected: {new_name}, Got: {name_value}"
+        assert (
+            surname_value == new_surname
+        ), f"Surname not updated in form field. Expected: {new_surname}, Got: {surname_value}"
+        assert (
+            affiliation_value == new_affiliation
+        ), f"Affiliation not updated in form field. Expected: {new_affiliation}, Got: {affiliation_value}"
+        assert orcid_value == new_orcid, f"ORCID not updated in form field. Expected: {new_orcid}, Got: {orcid_value}"
 
-        print(
-            "Test passed! (test_edit_profile_success) - Verified update in form fields."
-        )
+        print("Test passed! (test_edit_profile_success) - Verified update in form fields.")
 
     except AssertionError as e:
         # Captura todos los errores
@@ -214,9 +200,7 @@ def test_enable_2fa_page_loads_and_retrieves_secret():
         return secret
 
     except NoSuchElementException:
-        raise AssertionError(
-            "2FA enable page did not load or is missing key elements (token input or QR image)."
-        )
+        raise AssertionError("2FA enable page did not load or is missing key elements (token input or QR image).")
     except ValueError as e:
         raise AssertionError(f"2FA QR code processing failed: {e}")
 
@@ -238,17 +222,13 @@ def test_disable_2fa_works():
         driver.get(f"{host}/profile/disable-2fa")
         time.sleep(3)
 
-        driver.find_element(
-            By.XPATH, "//*[contains(text(), '2FA authentication disabled!')]"
-        )
+        driver.find_element(By.XPATH, "//*[contains(text(), '2FA authentication disabled!')]")
         assert driver.current_url.endswith("/profile/summary")
 
         print("Test passed! (test_disable_2fa_works)")
 
     except NoSuchElementException:
-        raise AssertionError(
-            "2FA disable failed or success message/redirect not found."
-        )
+        raise AssertionError("2FA disable failed or success message/redirect not found.")
 
     finally:
         close_driver(driver)

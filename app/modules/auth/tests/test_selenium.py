@@ -118,9 +118,7 @@ def test_signup_fails_if_email_in_use():
         driver.find_element(By.NAME, "password").send_keys("1234" + Keys.RETURN)
         time.sleep(3)
 
-        driver.find_element(
-            By.XPATH, "//*[contains(text(),'in use') or contains(text(),'Error')]"
-        )
+        driver.find_element(By.XPATH, "//*[contains(text(),'in use') or contains(text(),'Error')]")
 
     except NoSuchElementException:
         raise AssertionError("Signup should fail when the email already exists")
@@ -259,9 +257,7 @@ def test_2fa_access_without_session_redirects_to_login():
         print("Test passed! (test_2fa_access_without_session_redirects_to_login)")
 
     except NoSuchElementException:
-        raise AssertionError(
-            "Accessing /verify-2fa without a pending session did not redirect to login."
-        )
+        raise AssertionError("Accessing /verify-2fa without a pending session did not redirect to login.")
 
     finally:
         close_driver(driver)

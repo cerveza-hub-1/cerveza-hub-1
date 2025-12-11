@@ -287,6 +287,7 @@ def test_signup_exception_handling(test_client, monkeypatch):
 
 
 def test_login_redirects_to_2fa_if_enabled(test_client):
+    db.session.rollback()
     service = AuthenticationService()
     user = service.create_with_profile(
         name="Two",
@@ -302,6 +303,8 @@ def test_login_redirects_to_2fa_if_enabled(test_client):
     profile.twofa_enabled = True
     profile.twofa_confirmed = True
     profile.save()
+
+    db.session.refresh(profile)
 
     response = test_client.post(
         "/login",
@@ -399,6 +402,7 @@ def test_twofa_token_verification_with_model(clean_database):
 
 def test_verify_2fa_success(test_client):
     # Crear usuario con 2FA activado
+    db.session.rollback()
     data = {"name": "Two", "surname": "FA2", "email": "verify@example.com", "password": "1234"}
     user = AuthenticationService().create_with_profile(**data)
 

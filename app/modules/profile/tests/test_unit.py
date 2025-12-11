@@ -203,6 +203,7 @@ def test_verify_2fa_post_success(test_client):
         profile.set_twofa_secret(secret)
         profile.save()
 
+        db.session.expire_all()
         # Usamos un token simbólico, ya que la verificación será mockeada
         symbolic_token = "999999"
 
@@ -232,6 +233,7 @@ def test_view_public_profile_datasets(test_client):
     Verifies that a user can view another user's public profile and datasets,
     but does not see 2FA controls.
     """
+    db.session.rollback()
     # Crar usuario y perfil de un nuevo usuario
     other_user = User(email="other@example.com", password="otherpass")
     db.session.add(other_user)
@@ -269,6 +271,7 @@ def test_view_public_profile_datasets(test_client):
 
 
 def test_disable_2fa(test_client, monkeypatch):
+    db.session.rollback()
     user = User(email="disable@example.com", password="pass")
     db.session.add(user)
     db.session.commit()
@@ -293,6 +296,7 @@ def test_disable_2fa(test_client, monkeypatch):
 
 
 def test_my_profile_summary(test_client, monkeypatch):
+    db.session.rollback()
     user = User(email="summary@example.com", password="pass")
     db.session.add(user)
     db.session.commit()
@@ -309,6 +313,7 @@ def test_my_profile_summary(test_client, monkeypatch):
 
 
 def test_edit_profile_get(test_client, monkeypatch):
+    db.session.rollback()
     user = User(email="edit@example.com", password="pass")
     db.session.add(user)
     db.session.commit()
@@ -325,6 +330,7 @@ def test_edit_profile_get(test_client, monkeypatch):
 
 
 def test_login_without_twofa(test_client, monkeypatch):
+    db.session.rollback()
     user = User(email="no2fa@example.com", password="password")
     db.session.add(user)
     db.session.commit()
@@ -339,6 +345,7 @@ def test_login_without_twofa(test_client, monkeypatch):
 
 
 def test_verify_2fa_success(test_client, monkeypatch):
+    db.session.rollback()
     user = User(email="verify@example.com", password="pass")
     db.session.add(user)
     db.session.commit()
