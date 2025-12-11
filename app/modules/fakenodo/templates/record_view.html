@@ -1,0 +1,300 @@
+{% extends "base_template.html" %}
+
+{% block title %}Fakenodo Record {{ record.id }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    .option-button {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    .option-button:last-child {
+        margin-bottom: 0;
+    }
+    .doi_button {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 8px 15px;
+        border-radius: 5px;
+        text-align: left;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .doi_button:hover {
+        background-color: #e9ecef;
+    }
+
+    /* Distintivo visual de Fakenodo */
+    .fakenodo-header {
+        background: linear-gradient(90deg, #003366, #0055aa);
+        color: white;
+        border-radius: 10px;
+        padding: 18px 22px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .fakenodo-header-icon {
+        background: rgba(255,255,255,0.15);
+        padding: 10px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .fakenodo-section-label {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-6">
+        <a href="{{ url_for('fakenodo.index') }}" class="btn btn-primary btn-sm" style="border-radius: 5px;">
+            Go to Fakenodo
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- LEFT COLUMN -->
+    <div class="col-xl-8 col-lg-12 col-md-12 col-sm-12">
+
+        <!-- MAIN CARD -->
+        <div class="card">
+            <div class="card-body">
+
+                <div class="d-flex align-items-center justify-content-between">
+                    <h1 class="h4"><b>{{ record.metadata.title if record.metadata else 'Record ' + record.id|string }}</b></h1>
+
+                    <span class="badge {% if record.published %}bg-success{% else %}bg-warning{% endif %}">
+                        {% if record.published %}Published{% else %}Draft{% endif %}
+                    </span>
+                </div>
+
+                <p class="text-secondary mb-4">Fakenodo Record Information</p>
+
+                {% if record.metadata and record.metadata.description %}
+                <div class="row mb-3">
+                    <div class="col-md-4 text-secondary">Description</div>
+                    <div class="col-md-8">
+                        <p class="m-0">{{ record.metadata.description }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if record.doi %}
+                <div class="row mb-2">
+                    <div class="col-md-4 text-secondary">DOI</div>
+                    <div class="col-md-8">
+                        <a href="/doi/{{ record.doi }}" target="_blank">{{ record.doi }}</a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="row mb-2">
+                    <div class="col-md-4 text-secondary">Fakenodo ID</div>
+                    <div class="col-md-8">{{ record.id }}</div>
+                </div>
+
+                {% if dataset and dataset.user %}
+                <div class="row mb-2">
+                    <div class="col-md-4 text-secondary">Uploaded by</div>
+                    <div class="col-md-8">
+                        <a href="{{ url_for('profile.public_profile', user_id=dataset.user.id) }}">
+                            {{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if dataset and dataset.ds_meta_data.authors %}
+                <div class="row mb-2">
+                    <div class="col-md-4 text-secondary">Authors</div>
+                    <div class="col-md-8">
+                        {% for author in dataset.ds_meta_data.authors %}
+                        <p class="m-0">
+                            {{ author.name }}
+                            {% if author.affiliation %} ({{ author.affiliation }}){% endif %}
+                            {% if author.orcid %} ({{ author.orcid }}){% endif %}
+                        </p>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if dataset and dataset.ds_meta_data.tags %}
+                <div class="row mb-3">
+                    <div class="col-md-4 text-secondary">Tags</div>
+                    <div class="col-md-8">
+                        {% for tag in dataset.ds_meta_data.tags.split(',') %}
+                        <span class="badge bg-secondary">{{ tag.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+            {% if dataset and dataset.ds_meta_data and dataset.ds_meta_data.dataset_doi %}
+            <div class="card-body pt-0">
+
+                <div id="dataset_doi_uvlhub" style="display:none">{{ dataset.get_csvhub_doi() }}</div>
+
+                <button type="button" class="btn doi_button btn-sm" onclick="copyText('dataset_doi_uvlhub')">
+                    <span class="button_doi_id">
+                        <i data-feather="clipboard" class="center-button-icon"></i>
+                        <b>DOI</b>
+                    </span>
+                    <span class="doi_text">{{ dataset.get_csvhub_doi() }}</span>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- FILE LIST: CERVEZA HUB -->
+        {% if files %}
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Files from Cerveza Hub Dataset</h4>
+                <span class="badge bg-dark">{{ files|length }}</span>
+            </div>
+
+            <div class="list-group list-group-flush">
+                {% for file in files %}
+                <div class="list-group-item">
+                    <div class="row">
+                        <div class="col-8">
+                            <i data-feather="file"></i> {{ file.name }}
+                            <br>
+                            <small class="text-muted">({{ file.size }})</small>
+                        </div>
+                        <div class="col-12 text-end">
+                            <a href="{{ file.url }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 5px;">
+                                <i data-feather="download"></i> Download
+                            </a>
+                            <span class="badge bg-success">Cerveza Hub</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- FILE LIST: FAKENODO -->
+        {% if fakenodo_files %}
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Files from Fakenodo Record</h4>
+                <span class="badge bg-dark">{{ fakenodo_files|length }}</span>
+            </div>
+
+            <div class="list-group list-group-flush">
+                {% for file in fakenodo_files %}
+                <div class="list-group-item">
+                    <i data-feather="file"></i> {{ file.name }}<br>
+                    <small class="text-muted">({{ file.size }})</small>
+
+                    <div class="text-end mt-2">
+                        {% if file.source == 'fakenodo' %}
+                        <span class="badge bg-primary">Fakenodo</span>
+                        {% elif file.source == 'generated' %}
+                        <span class="badge bg-warning">Generated</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not files and not fakenodo_files %}
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="alert alert-warning mb-0">
+                    <i data-feather="alert-circle"></i> No files found for this record.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-xl-4 col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Actions</h5>
+
+                <a href="/fakenodo/api/records/{{ record.id }}" 
+                    class="btn btn-outline-secondary btn-sm mb-2 option-button" target="_blank">
+                    <i data-feather="code"></i> View JSON API
+                </a>
+
+                {% if dataset and dataset.ds_meta_data and dataset.ds_meta_data.dataset_doi %}
+                <a href="/doi/{{ dataset.ds_meta_data.dataset_doi }}" 
+                    class="btn btn-primary btn-sm mb-2 option-button">
+                    <i data-feather="database"></i> View Dataset in Cerveza Hub
+                </a>
+                {% endif %}
+
+                <a href="{{ url_for('fakenodo.index') }}" 
+                    class="btn btn-outline-primary btn-sm mb-2 option-button">
+                    <i data-feather="home"></i> Go to Fakenodo main site
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    feather.replace();
+});
+
+function copyText(elementId) {
+    const text = document.getElementById(elementId).innerText;
+    copyTextFallback(text);
+}
+
+function copyTextFallback(text) {
+    try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = 0;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+
+        const button = event.target.closest('button');
+        if (button) {
+            const original = button.innerHTML;
+            button.innerHTML = '<i data-feather="check"></i> Copied!';
+            feather.replace();
+            setTimeout(() => {
+                button.innerHTML = original;
+                feather.replace();
+            }, 1800);
+        }
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+    }
+}
+</script>
+
+{% endblock %}

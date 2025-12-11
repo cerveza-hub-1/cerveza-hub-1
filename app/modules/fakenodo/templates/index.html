@@ -1,0 +1,189 @@
+{% extends "base_template.html" %}
+
+{% block title %}Fakenodo - Repository{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-6">
+        <a href="/" class="btn btn-primary btn-sm" style="border-radius: 5px;">
+            <i data-feather="arrow-left" class="center-button-icon"></i>
+            Back to Cerveza Hub
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1><b>Fakenodo</b></h1>
+            <div>
+                <span class="badge bg-secondary">Beta</span>
+            </div>
+        </div>
+        <p class="text-secondary">Zenodo-compatible repository for Cerveza Hub datasets</p>
+
+        <div class="row mb-4">
+            <div class="col-md-4 col-12">
+                <span class="text-secondary">
+                    Description
+                </span>
+            </div>
+            <div class="col-md-8 col-12">
+                <p class="card-text">
+                    Fakenodo is a Zenodo-compatible repository integrated with Cerveza Hub for publishing 
+                    and sharing your datasets with persistent identifiers (DOIs) and version control.
+                </p>
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-4 col-12">
+                <span class="text-secondary">
+                    Status
+                </span>
+            </div>
+            <div class="col-md-8 col-12">
+                <p class="p-0 m-0">
+                    <span class="badge bg-success">Operational</span> 
+                    Integrated with Cerveza Hub
+                </p>
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-4 col-12">
+                <span class="text-secondary">
+                    Features
+                </span>
+            </div>
+            <div class="col-md-8 col-12">
+                <p class="p-0 m-0">
+                    <span class="badge bg-primary me-1">DOIs</span>
+                    <span class="badge bg-primary me-1">Versioning</span>
+                    <span class="badge bg-primary me-1">Cerveza Hub Integration</span>
+                    <span class="badge bg-primary">Open Access</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-4 col-12">
+                <span class="text-secondary">
+                    Access
+                </span>
+            </div>
+            <div class="col-md-8 col-12">
+                <p class="p-0 m-0">
+                    Available to all Cerveza Hub users. Sign in to publish your datasets.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h3 class="mb-3">Quick Actions</h3>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <a href="/fakenodo/api/records" class="btn btn-outline-secondary" style="width: 100%; text-align: left;">
+                    <div class="d-flex align-items-center">
+                        <i data-feather="search" class="me-3" style="width: 24px; height: 24px;"></i>
+                        <div>
+                            <h6 class="mb-0">Browse Records</h6>
+                            <small class="text-muted">View JSON API</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            {% if current_user.is_authenticated %}
+            <div class="col-md-6 mb-3">
+                <a href="{{ url_for('dataset.list_dataset') }}" class="btn btn-outline-primary" style="width: 100%; text-align: left;">
+                    <div class="d-flex align-items-center">
+                        <i data-feather="upload" class="me-3" style="width: 24px; height: 24px;"></i>
+                        <div>
+                            <h6 class="mb-0">My Datasets</h6>
+                            <small class="text-muted">View your datasets</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% else %}
+            <div class="col-md-6 mb-3">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary" style="width: 100%; text-align: left;">
+                    <div class="d-flex align-items-center">
+                        <i data-feather="log-in" class="me-3" style="width: 24px; height: 24px;"></i>
+                        <div>
+                            <h6 class="mb-0">Sign In to Publish</h6>
+                            <small class="text-muted">Access required to publish</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h3 class="mb-3">How It Works</h3>
+        
+        <div class="row">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="text-center">
+                    <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center mx-auto mb-2" 
+                         style="width: 50px; height: 50px;">
+                        <i data-feather="upload-cloud" style="color: #667eea;"></i>
+                    </div>
+                    <h6>1. Upload to Cerveza Hub</h6>
+                    <p class="text-muted small">Prepare your dataset in Cerveza Hub</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-6 mb-3">
+                <div class="text-center">
+                    <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center mx-auto mb-2" 
+                         style="width: 50px; height: 50px;">
+                        <i data-feather="share-2" style="color: #764ba2;"></i>
+                    </div>
+                    <h6>2. Publish to Fakenodo</h6>
+                    <p class="text-muted small">Create a record from dataset page</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-6 mb-3">
+                <div class="text-center">
+                    <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center mx-auto mb-2" 
+                         style="width: 50px; height: 50px;">
+                        <i data-feather="hash" style="color: #48bb78;"></i>
+                    </div>
+                    <h6>3. Get DOI</h6>
+                    <p class="text-muted small">Receive persistent identifier</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-6 mb-3">
+                <div class="text-center">
+                    <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center mx-auto mb-2" 
+                         style="width: 50px; height: 50px;">
+                        <i data-feather="git-branch" style="color: #ed8936;"></i>
+                    </div>
+                    <h6>4. Version Updates</h6>
+                    <p class="text-muted small">Publish new versions when needed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        feather.replace();
+    });
+</script>
+
+{% endblock %}
