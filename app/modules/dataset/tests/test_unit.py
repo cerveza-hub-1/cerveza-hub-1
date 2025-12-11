@@ -1,14 +1,14 @@
+import os
+from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import pytest
-import os
-from io import BytesIO
-
 from werkzeug.datastructures import FileStorage
+
 import app.modules.dataset.routes as dataset_routes
 from app import create_app
-from app.modules.dataset.services import DataSetService
 from app.modules.dataset.csv_validator import validate_csv_content
+from app.modules.dataset.services import DataSetService
 
 
 @pytest.fixture
@@ -17,6 +17,7 @@ def client():
     app.testing = True
     with app.test_client() as client:
         yield client
+
 
 @pytest.fixture
 def client(monkeypatch):
@@ -50,8 +51,6 @@ def client(monkeypatch):
 
     with app.test_client() as client:
         yield client
-
-
 
 
 def test_get_most_downloaded_datasets_success(client, monkeypatch):
@@ -212,7 +211,6 @@ def test_get_most_downloaded_datasets_unit():
     mock_query.all.assert_called_once()
 
 
-
 # Test de CSV_validator
 
 
@@ -297,22 +295,16 @@ def test_csv_invalid_ibu_range():
 
 # Test unitarios de las rutas del validator
 
+
 def test_validate_file_success(client, monkeypatch):
 
     def fake_validator(content):
         assert content == "test-csv"
         return True, None
 
-    monkeypatch.setattr(
-        dataset_routes,
-        "validate_csv_content",
-        fake_validator
-    )
+    monkeypatch.setattr(dataset_routes, "validate_csv_content", fake_validator)
 
-    response = client.post(
-        "/dataset/file/validate",
-        json={"content": "test-csv"}
-    )
+    response = client.post("/dataset/file/validate", json={"content": "test-csv"})
 
     data = response.get_json()
 
@@ -325,16 +317,9 @@ def test_validate_file_error(client, monkeypatch):
     def fake_validator(content):
         return False, {"message": "Mock error", "row": 3}
 
-    monkeypatch.setattr(
-        dataset_routes,
-        "validate_csv_content",
-        fake_validator
-    )
+    monkeypatch.setattr(dataset_routes, "validate_csv_content", fake_validator)
 
-    response = client.post(
-        "/dataset/file/validate",
-        json={"content": "bad-csv"}
-    )
+    response = client.post("/dataset/file/validate", json={"content": "bad-csv"})
 
     data = response.get_json()
 
@@ -345,6 +330,7 @@ def test_validate_file_error(client, monkeypatch):
 
 
 # Test de upload files que como ahora son csv hay que probarlos
+
 
 def test_upload_success(client, monkeypatch):
     """Debe aceptar un CSV válido, guardarlo y devolver 200."""
@@ -385,7 +371,6 @@ def test_upload_success(client, monkeypatch):
 
     # Confirmar que el archivo fue "guardado"
     assert saved_path["path"].endswith("test.csv")
-
 
 
 def test_upload_invalid_csv(client, monkeypatch):
