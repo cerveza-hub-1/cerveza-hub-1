@@ -410,9 +410,10 @@ class DataSetService(BaseService):
     def update_dsmetadata(self, ds_id, **kwargs):
         return self.dsmetadata_repository.update(ds_id, **kwargs)
 
+    #    MÉTODO MODIFICADO PARA SOLUCIONAR PROBLEMA URL PARA VISUALIZAR DATASETS DE PRUEBA EN DESPLIEGUE
+
     def get_csvhub_doi(self, dataset: DataSet) -> str:
-        domain = os.getenv("DOMAIN", "localhost")
-        return f"http://{domain}/doi/{dataset.ds_meta_data.dataset_doi}"
+        return f"/doi/{dataset.ds_meta_data.dataset_doi}/"
 
 
 # --- Otras Clases de Servicio ---

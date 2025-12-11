@@ -52,7 +52,6 @@ comment_service = CommentService()
 def create_dataset():
     form = DataSetForm()
     if request.method == "POST":
-
         dataset = None
 
         if not form.validate_on_submit():
@@ -269,7 +268,6 @@ def download_dataset(dataset_id):
 
 @dataset_bp.route("/doi/<path:doi>/", methods=["GET"])
 def subdomain_index(doi):
-
     # Check if the DOI is an old DOI
     new_doi = doi_mapping_service.get_new_doi(doi)
     if new_doi:
@@ -284,6 +282,13 @@ def subdomain_index(doi):
 
     # Get dataset
     dataset = ds_meta_data.data_set
+
+    # Obtener la URL del record (Fakenodo o Zenodo)
+    from app.modules.zenodo.services import ZenodoService
+
+    zenodo_service = ZenodoService()
+    record_url = zenodo_service.get_record_url(dataset.ds_meta_data.deposition_id)
+    is_fakenodo = zenodo_service.is_fakenodo
 
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)
 
@@ -302,6 +307,8 @@ def subdomain_index(doi):
             recs_tags=recs_tags,
             recs_affiliation=recs_affiliation,
             comments=comments,
+            record_url=record_url,
+            is_fakenodo=is_fakenodo,
         )
     )
     resp.set_cookie("view_cookie", user_cookie)
