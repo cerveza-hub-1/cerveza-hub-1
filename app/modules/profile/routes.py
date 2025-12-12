@@ -99,7 +99,7 @@ def verify_2fa():
     secret = profile.get_twofa_secret()
 
     if not secret:
-        flash("No se encontró el secreto de configuración. Vuelve a generarlo.", "error")
+        flash("Configuration secret not found. Generate it again.", "error")
         return redirect(url_for("profile.enable_2fa"))
 
     totp = pyotp.TOTP(secret)
@@ -107,10 +107,8 @@ def verify_2fa():
         profile.twofa_enabled = True
         profile.twofa_confirmed = True
         profile.save()
-        flash("Autenticación en dos pasos activada correctamente.", "success")
         return redirect(url_for("profile.my_profile"))
     else:
-        flash("Código incorrecto. Inténtalo de nuevo.", "error")
         return redirect(url_for("profile.enable_2fa"))
 
 
@@ -123,7 +121,7 @@ def disable_2fa():
     profile.twofa_confirmed = False
     profile.twofa_secret = None
     profile.save()
-    flash("Autenticación en dos pasos desactivada.", "success")
+    flash("2FA authentication disabled!", "success")
     return redirect(url_for("profile.my_profile"))
 
 
