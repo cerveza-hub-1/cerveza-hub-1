@@ -93,15 +93,15 @@ class RecommendationEngine:
                 tags_list = [tag.strip().lower() for tag in metadata.tags.split(",") if metadata.tags]
 
                 text_components_raw = [
-                    metadata.title,
-                    metadata.description,
-                    metadata.publication_type.value,
+                    metadata.title or "",
+                    metadata.description or "",
+                    (metadata.publication_type.value if metadata.publication_type else ""),
                     " ".join(authors_names),
                     " ".join(affiliation_names),
                     " ".join(tags_list),
                 ]
 
-                raw_combined_text = " ".join(filter(None, text_components_raw))
+                raw_combined_text = " ".join([t for t in text_components_raw if t])
 
                 full_text_processed = nlp_utils.proceso_contenido_completo(raw_combined_text)
 
