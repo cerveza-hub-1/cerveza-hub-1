@@ -1,3 +1,67 @@
+## 3.2.0 (2025-12-12)
+
+### Feat
+
+- **test**: Implementación tests de selenium WIS 101
+- **test**: Implementación tests de selenium de WIS 101
+- **newtypedataset**: se agregaron los test de carga
+- **newtypedataset**: se agrego el intento de un csv incorrecto en selenium test
+- **newtypedataset**: aplicado isort y black
+- **newtypedataset**: se agregaron test unitarios de las funciones nuevas o modificadas
+- merge branch 'feature_2FA_unit_tests' into trunk
+- add profile testing behaviors including view, edit, and 2FA functionality
+- merge branch 'feature_vagrant' into trunk
+- add Ansible Syntax Check workflow and integrate into existing workflows
+- **advancedsearch**: test de carga realizados
+- **advancedsearch**: test de interfaz agregados
+- **advancedsearch**: test de integracion añadidos
+- **advancedsearch**: test unitario de explore agregados
+- revert configurado dockerfile.dev
+- configurado dockerfile.dev
+- revert configurado docker-compose
+- configurado docker-compose
+- añadidos test de ranking dataset
+- lint y sintaxis de commit corregido.
+- **test**: implementación de tests unitarios de la WIS-101
+
+### Fix
+
+- **style**: Correción de estilo por fallo de workflow de lint
+- lint fixed
+- **csvmodel**: se recupero el routes
+- **dataset**: se arreglo el test de selenium de datasets
+- correct paths for Ansible playbook syntax check and linting
+- **trunk**: subiendo todos los cambios nuevamente
+- **advancedsearch**: formateando con black e isort
+- **advancedsearch**: quitando unused variables de locustfile
+- **advancedsearch**: quitando mas unused variables
+- **advancedsearch**: quitando unused variables
+- **explore**: se elimino un test de explore que estaba en dataset
+- **explore**: reformateado para arreglar los erorres de lint8
+- **explore**: se eliminaron todas las unused variables
+- **explore**: arreglando unused variables
+- **style**: corrección formato en app/modules/comment/tests/test_unit.py usando isort para cumplir estándares de lint
+- **style**: corrección formato en app/modules/comment/tests/test_unit.py para cumplir estándares de lint
+- chnage to do the commit change version with my user
+
+### Refactor
+
+- streamline GET requests in profile test behaviors for improved readability
+- clean up whitespace and formatting in profile test behaviors
+- improve code readability by formatting data dictionaries and enhancing error messages
+- comment out 2FA verification test due to CI/CD failures
+- comment out 2FA verification test due to CI/CD failures
+- replace session expiration with refresh for profile in 2FA verification test
+- replaces for improved session management in 2FA verification test
+- streamline assertions and response handling in authentication and profile tests
+- improve readability of test cases by formatting and organizing code
+- simplify exception handling and assertions in Selenium and unit tests
+- final AuthSeeder tests and Auth tests lint passed
+- improve flash message handling and update messages for 2FA features detected at Auth tests
+- simplify export options in dataset view by replacing dropdown with direct export button with format updated
+- streamline Ansible installation steps in CI workflow
+- enhance playbook structure and improve readability following lint checker
+
 ## 3.1.0 (2025-12-11)
 
 ### Feat
