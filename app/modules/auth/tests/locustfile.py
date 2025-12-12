@@ -1,6 +1,3 @@
-import re
-import time
-
 import pyotp
 from locust import HttpUser, SequentialTaskSet, TaskSet, task
 
@@ -65,7 +62,7 @@ class SignupBehavior(TaskSet):
         )
         # Debe fallar y mostrar el mensaje de error en la misma página
         if b"Email user1@example.com in use" not in response.content:
-            response.failure(f"Expected 'Email in use' error not found.")
+            response.failure("Expected 'Email in use' error not found.")
 
 
 class LoginNormalBehavior(TaskSet):
@@ -120,7 +117,7 @@ class LoginNormalBehavior(TaskSet):
         )
         # Debe fallar y mostrar el mensaje de error en la misma página
         if b"Invalid credentials" not in response.content:
-            response.failure(f"Expected 'Invalid credentials' error not found.")
+            response.failure("Expected 'Invalid credentials' error not found.")
 
 
 class Login2FABehavior(SequentialTaskSet):
@@ -139,7 +136,12 @@ class Login2FABehavior(SequentialTaskSet):
 
         response = self.client.post(
             "/login",
-            data={"email": USER_2FA_EMAIL, "password": USER_2FA_PASSWORD, "csrf_token": csrf_token, "submit": "Login"},
+            data={
+                "email": USER_2FA_EMAIL,
+                "password": USER_2FA_PASSWORD,
+                "csrf_token": csrf_token,
+                "submit": "Login",
+            },
             name="/login [POST] (Redirect to 2FA)",
             allow_redirects=False,
         )
@@ -169,7 +171,10 @@ class Login2FABehavior(SequentialTaskSet):
 
         # Enviar el token correcto (POST)
         response = self.client.post(
-            "/verify-2fa", data={"token": valid_token}, name="/verify-2fa [POST] (Success)", allow_redirects=False
+            "/verify-2fa",
+            data={"token": valid_token},
+            name="/verify-2fa [POST] (Success)",
+            allow_redirects=False,
         )
 
         if response.status_code == 302 and response.headers.get("Location") == "/":
@@ -194,12 +199,14 @@ class Login2FABehavior(SequentialTaskSet):
 
         # Enviar el token incorrecto (POST)
         response = self.client.post(
-            "/verify-2fa", data={"token": incorrect_token}, name="/verify-2fa [POST] (Fail - Invalid Code)"
+            "/verify-2fa",
+            data={"token": incorrect_token},
+            name="/verify-2fa [POST] (Fail - Invalid Code)",
         )
 
         # Debe mostrar el error en la misma página (no hay redirección de éxito)
         if b"Invalid code. Try again." not in response.content:
-            response.failure(f"Expected 'Invalid code' error not found.")
+            response.failure("Expected 'Invalid code' error not found.")
 
         self.client.get("/logout", name="/logout (after 2FA failure to reset session)")
 
@@ -214,7 +221,11 @@ class LogoutBehavior(TaskSet):
         csrf_token = get_csrf_token(response)
         self.client.post(
             "/login",
-            data={"email": USER_NORMAL_EMAIL, "password": USER_NORMAL_PASSWORD, "csrf_token": csrf_token},
+            data={
+                "email": USER_NORMAL_EMAIL,
+                "password": USER_NORMAL_PASSWORD,
+                "csrf_token": csrf_token,
+            },
             name="/login [POST] (pre-logout)",
             allow_redirects=False,
         )

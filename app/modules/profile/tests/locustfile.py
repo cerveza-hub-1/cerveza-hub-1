@@ -20,7 +20,12 @@ def login_user(client, email, password, name="Login (pre-task)"):
 
     client.post(
         "/login",
-        data={"email": email, "password": password, "csrf_token": csrf_token, "submit": "Login"},
+        data={
+            "email": email,
+            "password": password,
+            "csrf_token": csrf_token,
+            "submit": "Login",
+        },
         name=f"/login [POST] ({name})",
         allow_redirects=False,
     )
@@ -41,7 +46,10 @@ class ViewProfileBehavior(TaskSet):
     def view_public_profile(self):
         """Acceder al perfil público de otro usuario (user2)."""
         # Se asume que el user2 existe y tiene ID 2 basado en auth/seeders.py
-        self.client.get(f"/profile/{USER_OTHER_ID}", name="/profile/{user_id} (Public Profile)")
+        self.client.get(
+            f"/profile/{USER_OTHER_ID}", 
+            name="/profile/{user_id} (Public Profile)"
+        )
 
 
 class EditProfileBehavior(TaskSet):
@@ -58,20 +66,28 @@ class EditProfileBehavior(TaskSet):
     @task(3)
     def post_edit_profile_success(self):
         """Edición de perfil exitosa con nuevos datos válidos."""
-        response = self.client.get("/profile/edit", name="/profile/edit [GET] (Post Success)")
+        response = self.client.get(
+            "/profile/edit", name="/profile/edit [GET] (Post Success)"
+        )
         csrf_token = get_csrf_token(response)
 
         new_name = fake.first_name()
         new_surname = fake.last_name()
         new_affiliation = fake.company()
-        valid_orcid = f"{fake.random_number(digits=4)}-{fake.random_number(digits=4)}-{fake.random_number(digits=4)}-{fake.random_number(digits=4)}"
+        
+        orcid_format = "{}-{}-{}-{}".format(
+            fake.random_number(digits=4),
+            fake.random_number(digits=4),
+            fake.random_number(digits=4),
+            fake.random_number(digits=4),
+        )
 
         self.client.post(
             "/profile/edit",
             data={
                 "name": new_name,
                 "surname": new_surname,
-                "orcid": valid_orcid,
+                "orcid": orcid_format,
                 "affiliation": new_affiliation,
                 "csrf_token": csrf_token,
                 "submit": "Save profile",
@@ -101,13 +117,14 @@ class EditProfileBehavior(TaskSet):
         )
 
         if response.status_code != 200:
-            response.failure(f"Expected 200 status code on form validation failure, got {response.status_code}")
+            response.failure(
+                f"Expected 200 status code on form validation failure, got {response.status_code}"
+            )
 
 
 class TwoFABehavior(SequentialTaskSet):
     """
     Pruebas secuenciales para habilitar, verificar y deshabilitar 2FA.
-    Utiliza un usuario que inicialmente NO tiene 2FA habilitado (user1@example.com).
     """
 
     def on_start(self):
@@ -119,6 +136,7 @@ class TwoFABehavior(SequentialTaskSet):
         """Ruta: /profile/enable-2fa (GET) - Inicia la configuración y obtiene el secreto."""
         response = self.client.get("/profile/enable-2fa", name="/profile/enable-2fa [GET]")
 
+        # Capturamos el secreto, ya sea entre comillas o después de 'secret:'
         secret_match = re.search(r'secret="([A-Z2-7=]{16,})"|secret: (\w+)', response.text)
 
         if secret_match:
@@ -160,7 +178,19 @@ class TwoFABehavior(SequentialTaskSet):
 
         incorrect_token = "000000"
 
-        pass
+        # Simular una verificación fallida (esperamos redirección a enable-2fa)
+        response = self.client.post(
+            "/profile/verify-2fa",
+            data={"token": incorrect_token},
+            name="/profile/verify-2fa [POST] (Fail)",
+            allow_redirects=False,
+        )
+        
+        if response.status_code == 302 and "/profile/enable-2fa" in response.headers.get("Location", ""):
+            pass
+        else:
+             response.failure("Expected redirection to enable-2fa on failed verification.")
+             self.interrupt()
 
     @task
     def step_4_disable_2fa(self):
