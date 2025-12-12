@@ -46,10 +46,7 @@ class ViewProfileBehavior(TaskSet):
     def view_public_profile(self):
         """Acceder al perfil público de otro usuario (user2)."""
         # Se asume que el user2 existe y tiene ID 2 basado en auth/seeders.py
-        self.client.get(
-            f"/profile/{USER_OTHER_ID}",
-            name="/profile/{user_id} (Public Profile)"
-        )
+        self.client.get(f"/profile/{USER_OTHER_ID}", name="/profile/{user_id} (Public Profile)")
 
 
 class EditProfileBehavior(TaskSet):
@@ -66,9 +63,7 @@ class EditProfileBehavior(TaskSet):
     @task(3)
     def post_edit_profile_success(self):
         """Edición de perfil exitosa con nuevos datos válidos."""
-        response = self.client.get(
-            "/profile/edit", name="/profile/edit [GET] (Post Success)"
-        )
+        response = self.client.get("/profile/edit", name="/profile/edit [GET] (Post Success)")
         csrf_token = get_csrf_token(response)
 
         new_name = fake.first_name()
@@ -117,9 +112,7 @@ class EditProfileBehavior(TaskSet):
         )
 
         if response.status_code != 200:
-            response.failure(
-                f"Expected 200 status code on form validation failure, got {response.status_code}"
-            )
+            response.failure(f"Expected 200 status code on form validation failure, got {response.status_code}")
 
 
 class TwoFABehavior(SequentialTaskSet):
