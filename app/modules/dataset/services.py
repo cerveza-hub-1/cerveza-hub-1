@@ -92,19 +92,20 @@ class RecommendationEngine:
 
                 tags_list = [tag.strip().lower() for tag in metadata.tags.split(",") if metadata.tags]
 
-                text_components_raw = [
-                    metadata.title or "",
-                    metadata.description or "",
-                    (metadata.publication_type.value if metadata.publication_type else ""),
-                    " ".join(authors_names),
-                    " ".join(affiliation_names),
-                    " ".join(tags_list),
-                ]
+                authors_text = " ".join(authors_names) if authors_names else "NoAuthors"
+                affiliation_text = " ".join(affiliation_names) if affiliation_names else "NoAffiliations"
+                tags_text = " ".join(tags_list) if tags_list else "NoTags"
+                title_text = metadata.title or "NoTitle"
+                desc_text = metadata.description or "NoDescription"
+                pub_type_text = metadata.publication_type.value if metadata.publication_type else "NoPublicationType"
 
-                raw_combined_text = " ".join([t for t in text_components_raw if t])
+                raw_combined_text = " ".join([title_text, desc_text, pub_type_text, authors_text, affiliation_text, tags_text])
 
                 full_text_processed = nlp_utils.proceso_contenido_completo(raw_combined_text)
 
+                if not full_text_processed.strip():
+                    full_text_processed = "NoData"
+                
                 corpus_data.append(
                     {
                         "dataset_id": ds.id,
