@@ -184,7 +184,6 @@ def test_nested_comments():
         parent_p = comments_section.find_element(By.XPATH, f".//p[contains(text(), '{parent_comment_text}')]")
 
         parent_div = parent_p.find_element(By.XPATH, "./ancestor::div[contains(@id, 'comment-')]")
-        parent_id = parent_div.get_attribute("id").replace("comment-", "")
 
         reply_button = parent_div.find_element(By.CSS_SELECTOR, ".btn-secondary")
         reply_button.click()
