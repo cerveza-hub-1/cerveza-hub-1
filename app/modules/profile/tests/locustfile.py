@@ -47,7 +47,7 @@ class ViewProfileBehavior(TaskSet):
         """Acceder al perfil público de otro usuario (user2)."""
         # Se asume que el user2 existe y tiene ID 2 basado en auth/seeders.py
         self.client.get(
-            f"/profile/{USER_OTHER_ID}", 
+            f"/profile/{USER_OTHER_ID}",
             name="/profile/{user_id} (Public Profile)"
         )
 
@@ -74,7 +74,7 @@ class EditProfileBehavior(TaskSet):
         new_name = fake.first_name()
         new_surname = fake.last_name()
         new_affiliation = fake.company()
-        
+
         orcid_format = "{}-{}-{}-{}".format(
             fake.random_number(digits=4),
             fake.random_number(digits=4),
@@ -185,12 +185,12 @@ class TwoFABehavior(SequentialTaskSet):
             name="/profile/verify-2fa [POST] (Fail)",
             allow_redirects=False,
         )
-        
+
         if response.status_code == 302 and "/profile/enable-2fa" in response.headers.get("Location", ""):
             pass
         else:
-             response.failure("Expected redirection to enable-2fa on failed verification.")
-             self.interrupt()
+            response.failure("Expected redirection to enable-2fa on failed verification.")
+            self.interrupt()
 
     @task
     def step_4_disable_2fa(self):
