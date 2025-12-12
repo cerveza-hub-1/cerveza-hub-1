@@ -1,16 +1,46 @@
+import os
+from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import pytest
+from werkzeug.datastructures import FileStorage
 
 import app.modules.dataset.routes as dataset_routes
 from app import create_app
+from app.modules.dataset.csv_validator import validate_csv_content
 from app.modules.dataset.services import DataSetService
 
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
+    """Crea un cliente Flask de pruebas con un usuario autenticado falso."""
     app = create_app()
     app.testing = True
+
+    class DummyUser:
+        id = 10
+
+        @property
+        def is_authenticated(self):
+            return True
+
+        @property
+        def is_active(self):
+            return True
+
+        @property
+        def is_anonymous(self):
+            return False
+
+        def temp_folder(self):
+            return "/tmp/datasets_test"
+
+        def get_id(self):
+            return str(self.id)
+
+    # Sustituir current_user por DummyUser
+    monkeypatch.setattr("flask_login.utils._get_user", lambda: DummyUser())
+
     with app.test_client() as client:
         yield client
 
@@ -171,3 +201,188 @@ def test_get_most_downloaded_datasets_unit():
     mock_query.limit.assert_called_once_with(5)
     mock_query.order_by.assert_called_once()
     mock_query.all.assert_called_once()
+
+
+# Test de CSV_validator
+
+
+def test_csv_valid():
+    csv = """id,name,brand,style,alcohol,ibu,origin
+1,Beer A,BrandX,Lager,5.2,20,Germany
+2,Beer B,BrandY,IPA,6.0,45,USA
+"""
+    csv_correcto, error = validate_csv_content(csv)
+    assert csv_correcto is True
+    assert error is None
+
+
+def test_csv_empty():
+    csv = ""
+    csv_correcto, error = validate_csv_content(csv)
+    assert csv_correcto is False
+    assert error["message"] == "CSV file is empty"
+
+
+# Esto lo añade automaticamente si el csv lo creas desde excel, notepad, etc
+def test_csv_with_bom():
+    csv = "\ufeffid,name,brand,style,alcohol,ibu,origin\n1,A,B,C,5.0,10,D"
+    csv_correcto, error = validate_csv_content(csv)
+    assert csv_correcto is True
+
+
+def test_csv_invalid_header():
+    csv = """idx,pacopepe,pruebaneitor,style,alcohol,ibu,origin
+1,cerveza A,marcaX,Lager,5.2,20,Germany
+"""
+    csv_correcto, error = validate_csv_content(csv)
+    assert csv_correcto is False
+    assert error["message"] == "Invalid CSV header"
+    assert error["expected"] == ["id", "name", "brand", "style", "alcohol", "ibu", "origin"]
+
+
+def test_csv_wrong_column_count():
+    csv = """id,name,brand,style,alcohol,ibu,origin
+1,cerveza A
+"""
+    csv_correcto, error = validate_csv_content(csv)
+    assert csv_correcto is False
+    assert "Row 2 has" in error["error"]
+
+
+def test_csv_invalid_alcohol_not_number():
+    csv = """id,name,brand,style,alcohol,ibu,origin
+1,cerveza A,marcaX,Lager,eres-alcoholico,20,Germany
+"""
+    csv_correcto, error = validate_csv_content(csv)
+    assert csv_correcto is False
+    assert error["message"] == "Alcohol must be a decimal number in row 2"
+
+
+def test_csv_invalid_alcohol_range():
+    csv = """id,name,brand,style,alcohol,ibu,origin
+1,Beer A,BrandX,Lager,150,20,Germany
+"""
+    csv_correcto, error = validate_csv_content(csv)
+    assert csv_correcto is False
+    assert "Invalid alcohol value" in error["message"]
+
+
+def test_csv_invalid_ibu_not_int():
+    csv = """id,name,brand,style,alcohol,ibu,origin
+1,Beer A,BrandX,Lager,5.0,notint,Germany
+"""
+    csv_correcto, error = validate_csv_content(csv)
+    assert csv_correcto is False
+    assert error["message"] == "IBU must be an integer in row 2"
+
+
+def test_csv_invalid_ibu_range():
+    csv = """id,name,brand,style,alcohol,ibu,origin
+1,Beer A,BrandX,Lager,5.0,500,Germany
+"""
+    csv_correcto, error = validate_csv_content(csv)
+    assert csv_correcto is False
+    assert "Invalid IBU value" in error["message"]
+
+
+# Test unitarios de las rutas del validator
+
+
+def test_validate_file_success(client, monkeypatch):
+
+    def fake_validator(content):
+        assert content == "test-csv"
+        return True, None
+
+    monkeypatch.setattr(dataset_routes, "validate_csv_content", fake_validator)
+
+    response = client.post("/dataset/file/validate", json={"content": "test-csv"})
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["valid"] is True
+
+
+def test_validate_file_error(client, monkeypatch):
+
+    def fake_validator(content):
+        return False, {"message": "Mock error", "row": 3}
+
+    monkeypatch.setattr(dataset_routes, "validate_csv_content", fake_validator)
+
+    response = client.post("/dataset/file/validate", json={"content": "bad-csv"})
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["valid"] is False
+    assert data["error"]["message"] == "Mock error"
+    assert data["error"]["row"] == 3
+
+
+# Test de upload files que como ahora son csv hay que probarlos
+
+
+def test_upload_success(client, monkeypatch):
+    """Debe aceptar un CSV válido, guardarlo y devolver 200."""
+
+    # Mock del validador
+    def fake_validator(content):
+        assert "col1,col2" in content
+        return True, None
+
+    monkeypatch.setattr(dataset_routes, "validate_csv_content", fake_validator)
+
+    # Mock de sistema de archivos
+    monkeypatch.setattr(os.path, "exists", lambda path: False)
+    monkeypatch.setattr(os, "makedirs", lambda path: None)
+
+    saved_path = {}
+
+    # Mock de FileStorage.save (el REAL que Flask usa)
+    def fake_filestorage_save(self, dst, *args, **kwargs):
+        saved_path["path"] = dst
+
+    monkeypatch.setattr(FileStorage, "save", fake_filestorage_save)
+
+    # Archivo que Flask procesará como FileStorage real
+    file_data = (BytesIO(b"col1,col2\n1,2"), "test.csv")
+
+    response = client.post(
+        "/dataset/file/upload",
+        data={"file": file_data},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    data = response.get_json()
+
+    assert data["message"] == "CSV uploaded and validated successfully"
+    assert data["filename"] == "test.csv"
+
+    # Confirmar que el archivo fue "guardado"
+    assert saved_path["path"].endswith("test.csv")
+
+
+def test_upload_invalid_csv(client, monkeypatch):
+    """Debe devolver 400 si validate_csv_content indica error."""
+
+    def fake_validator(content):
+        return False, {"message": "Invalid CSV", "row": 2}
+
+    monkeypatch.setattr(dataset_routes, "validate_csv_content", fake_validator)
+
+    file_data = BytesIO(b"bad csv data")
+    file_data.filename = "invalid.csv"
+
+    data = {"file": (file_data, "invalid.csv")}
+
+    resp = client.post(
+        "/dataset/file/upload",
+        data=data,
+        content_type="multipart/form-data",
+    )
+
+    assert resp.status_code == 400
+    assert resp.get_json()["message"] == "Invalid CSV"

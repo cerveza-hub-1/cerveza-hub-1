@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: 3. MARIADB SCRIPTS - Set Permissions and Initialize DB
+  hosts: all
   become: true
 
   vars:
@@ -18,29 +19,31 @@
 
   tasks:
     - name: Set permissions for wait-for-db.sh
-      file:
+      ansible.builtin.file:
         path: "{{ working_dir }}scripts/wait-for-db.sh"
         mode: '0755'
         state: file
       environment: "{{ common_environment }}"
 
     - name: Set permissions for init-testing-db.sh
-      file:
+      ansible.builtin.file:
         path: "{{ working_dir }}scripts/init-testing-db.sh"
         mode: '0755'
         state: file
       environment: "{{ common_environment }}"
 
     - name: Wait for MariaDB to be ready
-      shell: |
+      ansible.builtin.shell: |
         {{ working_dir }}scripts/wait-for-db.sh
       args:
         executable: /bin/bash
       environment: "{{ common_environment }}"
+      changed_when: false
 
     - name: Initialize the database
-      shell: |
+      ansible.builtin.shell: |
         {{ working_dir }}scripts/init-testing-db.sh
       args:
         executable: /bin/bash
       environment: "{{ common_environment }}"
+      changed_when: true  # Forzamos changed_when: true ya que inicializa la DB

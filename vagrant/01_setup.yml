@@ -1,8 +1,9 @@
 ---
-- hosts: all
+- name: 1. SETUP - Update System Cache
+  hosts: all
   become: true
 
   tasks:
-    - name: Update the system
-      apt:
-        update_cache: yes
+    - name: Update the system cache
+      ansible.builtin.apt:
+        update_cache: true
