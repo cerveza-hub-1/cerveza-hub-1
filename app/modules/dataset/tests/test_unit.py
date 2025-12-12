@@ -232,3 +232,44 @@ class TestRecommendationEngine:
         DataSetService._recommendation_engine = engine
         out = service.get_similar_datasets(1)
         assert out == []
+    
+
+    @patch("app.modules.dataset.services.DataSet")
+    @patch("app.modules.dataset.services.nlp_utils")
+    def test_initialization_with_none_publication_type(self, mock_nlp, mock_dataset_model, flask_app):
+        # Dataset con publication_type None
+        class MockMeta:
+            def __init__(self):
+                self.title = "T"
+                self.description = "D"
+                self.tags = "tag"
+                self.authors = [MockAuthor("A", "U")]
+                self.dataset_doi = "doi-T"
+                self.publication_type = None  
+
+        d = MockDataSet(1, MockMeta())
+        mock_dataset_model.query.all.return_value = [d]
+        mock_nlp.proceso_contenido_completo.side_effect = lambda x: x
+
+        engine = RecommendationEngine(flask_app)
+        assert "full_text_corpus" in engine.df.columns
+
+    @patch("app.modules.dataset.services.DataSet")
+    def test_force_retrain_calls_initialize(self, mock_dataset_model, flask_app):
+        # Verifica que force_retrain llame a _initialize_engine
+        mock_dataset_model.query.all.return_value = []
+        engine = RecommendationEngine(flask_app)
+        with patch.object(engine, "_initialize_engine") as mock_init:
+            engine.force_retrain()
+            mock_init.assert_called_once()
+
+    @patch("app.modules.dataset.services.DataSet")
+    @patch("app.modules.dataset.services.nlp_utils")
+    def test_get_corpus_data_handles_empty_dataset_list(self, mock_nlp, mock_dataset_model, flask_app):
+        mock_dataset_model.query.all.return_value = []
+        mock_nlp.proceso_contenido_completo.side_effect = lambda x: x
+        engine = RecommendationEngine(flask_app)
+        # Debe generar df vacío y no lanzar excepción
+        assert engine.df.empty
+
+
