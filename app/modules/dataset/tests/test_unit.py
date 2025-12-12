@@ -11,6 +11,7 @@ from app.modules.dataset.csv_validator import validate_csv_content
 from app.modules.dataset.services import DataSetService, RecommendationEngine
 
 
+# --- Mock Classes ---
 class MockAuthor:
     def __init__(self, name, affiliation):
         self.name = name
@@ -38,6 +39,7 @@ class MockDataSet:
         self.ds_meta_data = metadata
 
 
+# --- Fixtures ---
 @pytest.fixture
 def client(monkeypatch):
     app = create_app()
@@ -71,11 +73,6 @@ def client(monkeypatch):
 
 
 @pytest.fixture
-def mock_app():
-    return MagicMock()
-
-
-@pytest.fixture
 def sample_datasets():
     d1 = MockDataSet(1, MockDSMetaData("Title A", "Desc A", "tag1, tag2", [MockAuthor("Auth A", "Univ A")]))
     d2 = MockDataSet(2, MockDSMetaData("Title B", "Desc B", "tag2, tag3", [MockAuthor("Auth B", "Univ B")]))
@@ -90,6 +87,15 @@ def flask_app():
         yield app
 
 
+@pytest.fixture
+def mock_dataset_model(monkeypatch, sample_datasets):
+    mock_model = MagicMock()
+    mock_model.query.all.return_value = sample_datasets
+    monkeypatch.setattr("app.modules.dataset.services.DataSet", mock_model)
+    return mock_model
+
+
+# --- API Tests ---
 def test_get_most_downloaded_datasets_success(client, monkeypatch):
     sample = [{"id": 1, "title": "Dataset A", "downloads": 10}, {"id": 2, "title": "Dataset B", "downloads": 5}]
 
@@ -116,7 +122,7 @@ def test_get_most_viewed_datasets_success(client, monkeypatch):
     assert resp.get_json() == sample
 
 
-# --- Tests CSV Validator ---
+# --- CSV Validator Tests ---
 def test_csv_valid():
     csv = (
         "id,name,brand,style,alcohol,ibu,origin\n1,Beer A,BrandX,Lager,5.2,20,Germany\n2,Beer B,BrandY,IPA,6.0,45,USA\n"
@@ -135,15 +141,19 @@ def test_csv_empty():
 # --- Recommendation Engine Tests ---
 class TestRecommendationEngine:
 
-    @patch("app.modules.dataset.services.DataSet")
-    @patch("app.modules.dataset.services.nlp_utils")
-    @patch("app.modules.dataset.services.create_in")
     @patch("app.modules.dataset.services.os.makedirs")
     @patch("app.modules.dataset.services.shutil.rmtree")
+    @patch("app.modules.dataset.services.create_in")
+    @patch("app.modules.dataset.services.nlp_utils")
     def test_initialization_and_training(
-        self, mock_rmtree, mock_makedirs, mock_create_in, mock_nlp, mock_dataset_model, flask_app, sample_datasets
+        self, mock_nlp, mock_create_in, mock_rmtree, mock_makedirs, flask_app, sample_datasets, monkeypatch
     ):
-        mock_dataset_model.query.all.return_value = sample_datasets
+        # Patch DataSet
+        mock_model = MagicMock()
+        mock_model.query.all.return_value = sample_datasets
+        monkeypatch.setattr("app.modules.dataset.services.DataSet", mock_model)
+
+        # NLP mock
         mock_nlp.proceso_contenido_completo.side_effect = lambda x: f"processed_{x[:10]}"
 
         engine = RecommendationEngine(flask_app)
@@ -170,7 +180,6 @@ class TestRecommendationEngine:
         service = DataSetService()
         engine = RecommendationEngine(flask_app)
 
-        # Datos simulados
         engine.df = pd.DataFrame(
             [
                 {"dataset_id": 101, "title": "Java Project", "dataset_doi": "doi/1"},
@@ -231,7 +240,6 @@ class TestRecommendationEngine:
     @patch("app.modules.dataset.services.DataSet")
     @patch("app.modules.dataset.services.nlp_utils")
     def test_initialization_with_none_publication_type(self, mock_nlp, mock_dataset_model, flask_app):
-        # Dataset con publication_type None
         class MockMeta:
             def __init__(self):
                 self.title = "T"
@@ -250,7 +258,6 @@ class TestRecommendationEngine:
 
     @patch("app.modules.dataset.services.DataSet")
     def test_force_retrain_calls_initialize(self, mock_dataset_model, flask_app):
-        # Verifica que force_retrain llame a _initialize_engine
         mock_dataset_model.query.all.return_value = []
         engine = RecommendationEngine(flask_app)
         with patch.object(engine, "_initialize_engine") as mock_init:
@@ -263,5 +270,4 @@ class TestRecommendationEngine:
         mock_dataset_model.query.all.return_value = []
         mock_nlp.proceso_contenido_completo.side_effect = lambda x: x
         engine = RecommendationEngine(flask_app)
-        # Debe generar df vacío y no lanzar excepción
         assert engine.df.empty
