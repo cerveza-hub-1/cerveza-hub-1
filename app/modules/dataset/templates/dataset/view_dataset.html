@@ -320,16 +320,6 @@
                                     <i data-feather="eye"></i> View
                                 </button>
 
-                                <div class="btn-group" role="group">
-                                    <button id="btnGroupDrop{{ file.id }}" type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style=" border-radius: 5px;">
-                                        <i data-feather="check"></i> Check
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="btnGroupDrop{{ file.id }}">
-                                        <li>
-                                            <a class="dropdown-item" href="javascript:void(0);" onclick="checkUVL('{{ file.id }}')">Syntax check</a>
-                                        </li>
-                                        </ul>
-                                </div>
                                 
                                 <a href="{{ url_for('hubfile.download_file', file_id=file.id) }}" class="btn btn-primary btn-sm" style="border-radius: 5px;">
                                     <i data-feather="download"></i> Export CSV
@@ -406,41 +396,6 @@
         document.getElementById("loading").style.display = "none";
     }
 
-    function checkUVL(file_id) {
-        const outputDiv = document.getElementById('check_' + file_id);
-        outputDiv.innerHTML = ''; 
-
-        fetch(`/flamapy/check_uvl/${file_id}`)
-            .then(response => {
-                return response.json().then(data => ({
-                    status: response.status,
-                    data
-                }));
-            })
-            .then(({ status, data }) => {
-                if (status === 400) {
-                    if (data.errors) {
-                        outputDiv.innerHTML = '<span class="badge bg-danger">Errors:</span>';
-                        data.errors.forEach(error => {
-                            const errorElement = document.createElement('span');
-                            errorElement.className = 'badge bg-danger';
-                            errorElement.textContent = error;
-                            outputDiv.appendChild(errorElement);
-                            outputDiv.appendChild(document.createElement('br')); 
-                        });
-                    } else {
-                        outputDiv.innerHTML = `<span class="badge bg-danger">Error: ${data.error}</span>`;
-                    }
-                } else if (status === 200) {
-                    outputDiv.innerHTML = '<span class="badge bg-success">Valid Model</span>';
-                } else {
-                    outputDiv.innerHTML = `<span class="badge bg-warning">Unexpected response status: ${status}</span>`;
-                }
-            })
-            .catch(error => {
-                outputDiv.innerHTML = `<span class="badge bg-danger">An unexpected error occurred: ${error.message}</span>`;
-            });
-    }
 
     /*
     async function valid() {
