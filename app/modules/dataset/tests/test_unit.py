@@ -12,14 +12,6 @@ from app.modules.dataset.services import DataSetService
 
 
 @pytest.fixture
-def client():
-    app = create_app()
-    app.testing = True
-    with app.test_client() as client:
-        yield client
-
-
-@pytest.fixture
 def client(monkeypatch):
     """Crea un cliente Flask de pruebas con un usuario autenticado falso."""
     app = create_app()
