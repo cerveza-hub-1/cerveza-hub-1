@@ -1,12 +1,9 @@
-import os
-from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
 from scipy.sparse import csr_matrix
-from werkzeug.datastructures import FileStorage
 
 import app.modules.dataset.routes as dataset_routes
 from app import create_app
