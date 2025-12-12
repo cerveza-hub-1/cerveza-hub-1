@@ -85,6 +85,8 @@ def test_upload_dataset():
         # Obtén las rutas absolutas de los archivos
         file1_path = os.path.abspath("app/modules/dataset/csv_examples/file1.csv")
         file2_path = os.path.abspath("app/modules/dataset/csv_examples/file2.csv")
+        # csv invalido
+        invalid_csv_path = os.path.abspath("app/modules/dataset/csv_examples/file15.csv")
 
         # Subir el primer archivo
         dropzone = driver.find_element(By.CLASS_NAME, "dz-hidden-input")
@@ -95,6 +97,16 @@ def test_upload_dataset():
         dropzone = driver.find_element(By.CLASS_NAME, "dz-hidden-input")
         dropzone.send_keys(file2_path)
         wait_for_page_to_load(driver)
+
+        # Subir el CSV inválido
+        dropzone = driver.find_element(By.CLASS_NAME, "dz-hidden-input")
+        dropzone.send_keys(invalid_csv_path)
+        wait_for_page_to_load(driver)
+
+        # Esperar a que Dropzone muestre error
+        WebDriverWait(driver, 5).until(
+            lambda d: len(d.find_elements(By.XPATH, "//div[contains(@class, 'dz-error-message')]")) > 0
+        )
 
         # Check I agree and send form
         check = driver.find_element(By.ID, "agreeCheckbox")
