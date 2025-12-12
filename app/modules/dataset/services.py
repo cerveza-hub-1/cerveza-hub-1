@@ -6,7 +6,6 @@ import tempfile
 import uuid
 from typing import Dict, List, Optional
 
-from app.modules.dataset import nlp_utils
 import pandas as pd
 from flask import request
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -22,6 +21,7 @@ from app.modules.csvmodel.repositories import (
     CSVModelRepository,
     FMMetaDataRepository,
 )
+from app.modules.dataset import nlp_utils
 from app.modules.dataset.models import DataSet, DSDownloadRecord, DSMetaData, DSViewRecord
 from app.modules.dataset.repositories import (
     AuthorRepository,
@@ -95,15 +95,10 @@ class RecommendationEngine:
 
                 publication_type = str(metadata.publication_type).lower() if metadata.publication_type else ""
 
-                combined_text = " ".join([
-                    " ".join(authors),
-                    " ".join(affiliations),
-                    " ".join(tags),
-                    publication_type
-                ])
+                combined_text = " ".join([" ".join(authors), " ".join(affiliations), " ".join(tags), publication_type])
 
                 full_text_processed = nlp_utils.proceso_contenido_completo(combined_text)
-                    
+
                 corpus_data.append(
                     {
                         "dataset_id": ds.id,
@@ -112,7 +107,7 @@ class RecommendationEngine:
                         "authors": " ".join(authors),
                         "tags": " ".join(tags),
                         "affiliation": " ".join(affiliations),
-                        "full_text_corpus": full_text_processed
+                        "full_text_corpus": full_text_processed,
                     }
                 )
 

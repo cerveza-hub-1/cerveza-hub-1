@@ -466,7 +466,7 @@ class TestRecommendationEngine:
         assert not engine.df.empty
         assert len(engine.df) > 0
 
-        assert "text" in engine.df.columns
+        assert "full_text_corpus" in engine.df.columns
 
         assert isinstance(engine.models, dict)
 
@@ -500,7 +500,7 @@ class TestRecommendationEngine:
 
         engine = RecommendationEngine(flask_app)
 
-        assert "text" in engine.df.columns
+        assert "full_text_corpus" in engine.df.columns
 
     def test_force_retrain_calls_initialize(self, flask_app):
         engine = RecommendationEngine(flask_app)
