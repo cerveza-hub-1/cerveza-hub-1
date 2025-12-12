@@ -1,4 +1,11 @@
 import pytest
+from unittest.mock import MagicMock, patch
+
+@pytest.fixture(autouse=True)
+def mock_spacy_load():
+    with patch("spacy.load", return_value=MagicMock()):
+        yield
+
 
 from app import create_app, db
 from app.modules.auth.models import User
@@ -6,11 +13,9 @@ from app.modules.auth.models import User
 
 @pytest.fixture(scope="session")
 def test_app():
-    """Create and configure a new app instance for each test session."""
     test_app = create_app("testing")
 
     with test_app.app_context():
-        # Imprimir los blueprints registrados
         print("TESTING SUITE (1): Blueprints registrados:", test_app.blueprints)
         yield test_app
 
@@ -24,10 +29,6 @@ def test_client(test_app):
 
             db.drop_all()
             db.create_all()
-            """
-            The test suite always includes the following user in order to avoid repetition
-            of its creation
-            """
             user_test = User(email="test@example.com", password="test1234")
             db.session.add(user_test)
             db.session.commit()
@@ -53,29 +54,9 @@ def clean_database():
 
 
 def login(test_client, email, password):
-    """
-    Authenticates the user with the credentials provided.
-
-    Args:
-        test_client: Flask test client.
-        email (str): User's email address.
-        password (str): User's password.
-
-    Returns:
-        response: POST login request response.
-    """
     response = test_client.post("/login", data=dict(email=email, password=password), follow_redirects=True)
     return response
 
 
 def logout(test_client):
-    """
-    Logs out the user.
-
-    Args:
-        test_client: Flask test client.
-
-    Returns:
-        response: Response to GET request to log out.
-    """
     return test_client.get("/logout", follow_redirects=True)
