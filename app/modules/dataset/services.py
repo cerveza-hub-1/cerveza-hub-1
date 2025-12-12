@@ -40,7 +40,7 @@ from core.services.BaseService import BaseService
 
 logger = logging.getLogger(__name__)
 
-CorpusRecord = Dict[str, any]
+CorpusRecord = dict[str, any]
 INDEXABLE_FIELDS = ["authors", "tags", "affiliation"]
 
 
@@ -67,15 +67,12 @@ class RecommendationEngine:
         logger.info("RecommendationEngine initialized.")
 
     def _get_corpus_data_from_db(self) -> List[CorpusRecord]:
-        """Extrae los metadatos de los DataSets que son relevantes para la similitud."""
-
         corpus_data: List[CorpusRecord] = []
         logger.debug("--- INICIO: Extracción de corpus de la Base de Datos ---")
 
         with self.app.app_context():
 
             datasets = DataSet.query.all()
-
             if not datasets:
                 logger.warning("No se encontraron DataSets en la base de datos.")
                 return []
@@ -83,45 +80,39 @@ class RecommendationEngine:
             for ds in datasets:
                 metadata: DSMetaData = ds.ds_meta_data
 
+                # Autores
                 authors_names = []
                 affiliation_names = []
-                for author in metadata.authors:
-                    authors_names.append(author.name.lower())
+
+                for author in metadata.authors or []:
+                    if author.name:
+                        authors_names.append(author.name.lower())
+
                     if author.affiliation:
                         affiliation_names.append(author.affiliation.lower())
 
-                tags_list = [tag.strip().lower() for tag in metadata.tags.split(",") if metadata.tags]
+                # TAGS (Fix del error)
+                if metadata.tags:
+                    tags_list = [tag.strip().lower() for tag in metadata.tags.split(",") if tag.strip()]
+                else:
+                    tags_list = []
 
-                authors_text = " ".join(authors_names) if authors_names else "NoAuthors"
-                affiliation_text = " ".join(affiliation_names) if affiliation_names else "NoAffiliations"
-                tags_text = " ".join(tags_list) if tags_list else "NoTags"
-                title_text = metadata.title or "NoTitle"
-                desc_text = metadata.description or "NoDescription"
-                pub_type_text = metadata.publication_type.value if metadata.publication_type else "NoPublicationType"
+                # Publicación
+                publication_type = str(metadata.publication_type).lower() if metadata.publication_type else ""
 
-                raw_combined_text = " ".join(
-                    [title_text, desc_text, pub_type_text, authors_text, affiliation_text, tags_text]
-                )
+                # Construcción del texto
+                text_parts = [
+                    " ".join(authors_names),
+                    " ".join(affiliation_names),
+                    " ".join(tags_list),
+                    publication_type,
+                ]
 
-                full_text_processed = nlp_utils.proceso_contenido_completo(raw_combined_text)
+                combined_text = " ".join([p for p in text_parts if p])
 
-                if not full_text_processed.strip():
-                    full_text_processed = "NoData"
+                corpus_data.append(CorpusRecord(dataset_id=ds.id, text=combined_text))
 
-                corpus_data.append(
-                    {
-                        "dataset_id": ds.id,
-                        "title": metadata.title,
-                        "description": metadata.description,
-                        "authors": " ".join(authors_names),
-                        "affiliation": " ".join(affiliation_names),
-                        "tags": " ".join(tags_list),
-                        "dataset_doi": metadata.dataset_doi,
-                        "full_text_corpus": full_text_processed,
-                    }
-                )
-
-        logger.info(f"Corpus extraction complete. {len(corpus_data)} records retrieved.")
+        logger.debug("--- FIN: Extracción de corpus de la Base de Datos ---")
         return corpus_data
 
     def _create_whoosh_index(self, field_name: str):
