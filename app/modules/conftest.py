@@ -1,8 +1,10 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from app import create_app, db
 from app.modules.auth.models import User
-from unittest.mock import MagicMock, patch
+
 
 @pytest.fixture(autouse=True)
 def mock_spacy_load():

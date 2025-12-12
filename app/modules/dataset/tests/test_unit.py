@@ -1,11 +1,11 @@
 import os
-import pandas as pd
-import numpy as np
 from io import BytesIO
 from unittest.mock import MagicMock, patch
-from scipy.sparse import csr_matrix
 
+import numpy as np
+import pandas as pd
 import pytest
+from scipy.sparse import csr_matrix
 from werkzeug.datastructures import FileStorage
 
 import app.modules.dataset.routes as dataset_routes
@@ -19,9 +19,11 @@ class MockAuthor:
         self.name = name
         self.affiliation = affiliation
 
+
 class MockPublicationType:
     def __init__(self, value):
         self.value = value
+
 
 class MockDSMetaData:
     def __init__(self, title, desc, tags, authors, publication_type_value="Journal"):
@@ -78,19 +80,10 @@ def mock_app():
 
 @pytest.fixture
 def sample_datasets():
-    d1 = MockDataSet(
-        1,
-        MockDSMetaData(
-            "Title A", "Desc A", "tag1, tag2", [MockAuthor("Auth A", "Univ A")]
-        )
-    )
-    d2 = MockDataSet(
-        2,
-        MockDSMetaData(
-            "Title B", "Desc B", "tag2, tag3", [MockAuthor("Auth B", "Univ B")]
-        )
-    )
+    d1 = MockDataSet(1, MockDSMetaData("Title A", "Desc A", "tag1, tag2", [MockAuthor("Auth A", "Univ A")]))
+    d2 = MockDataSet(2, MockDSMetaData("Title B", "Desc B", "tag2, tag3", [MockAuthor("Auth B", "Univ B")]))
     return [d1, d2]
+
 
 @pytest.fixture
 def flask_app():
@@ -98,6 +91,7 @@ def flask_app():
     app.testing = True
     with app.app_context():
         yield app
+
 
 def test_get_most_downloaded_datasets_success(client, monkeypatch):
     sample = [{"id": 1, "title": "Dataset A", "downloads": 10}, {"id": 2, "title": "Dataset B", "downloads": 5}]
@@ -127,7 +121,9 @@ def test_get_most_viewed_datasets_success(client, monkeypatch):
 
 # --- Tests CSV Validator ---
 def test_csv_valid():
-    csv = "id,name,brand,style,alcohol,ibu,origin\n1,Beer A,BrandX,Lager,5.2,20,Germany\n2,Beer B,BrandY,IPA,6.0,45,USA\n"
+    csv = (
+        "id,name,brand,style,alcohol,ibu,origin\n1,Beer A,BrandX,Lager,5.2,20,Germany\n2,Beer B,BrandY,IPA,6.0,45,USA\n"
+    )
     valid, err = validate_csv_content(csv)
     assert valid is True
     assert err is None
@@ -178,11 +174,13 @@ class TestRecommendationEngine:
         engine = RecommendationEngine(flask_app)
 
         # Datos simulados
-        engine.df = pd.DataFrame([
-            {"dataset_id": 101, "title": "Java Project", "dataset_doi": "doi/1"},
-            {"dataset_id": 102, "title": "Python Project", "dataset_doi": "doi/2"},
-            {"dataset_id": 103, "title": "Java Advanced", "dataset_doi": "doi/3"},
-        ])
+        engine.df = pd.DataFrame(
+            [
+                {"dataset_id": 101, "title": "Java Project", "dataset_doi": "doi/1"},
+                {"dataset_id": 102, "title": "Python Project", "dataset_doi": "doi/2"},
+                {"dataset_id": 103, "title": "Java Advanced", "dataset_doi": "doi/3"},
+            ]
+        )
         fake_matrix = csr_matrix([[1.0, 0.0], [0.0, 1.0], [0.9, 0.1]])
         engine.models = {"full_text_corpus": {"vectorizer": MagicMock(), "matrix": fake_matrix}}
         DataSetService._recommendation_engine = engine
@@ -232,7 +230,6 @@ class TestRecommendationEngine:
         DataSetService._recommendation_engine = engine
         out = service.get_similar_datasets(1)
         assert out == []
-    
 
     @patch("app.modules.dataset.services.DataSet")
     @patch("app.modules.dataset.services.nlp_utils")
@@ -245,7 +242,7 @@ class TestRecommendationEngine:
                 self.tags = "tag"
                 self.authors = [MockAuthor("A", "U")]
                 self.dataset_doi = "doi-T"
-                self.publication_type = None  
+                self.publication_type = None
 
         d = MockDataSet(1, MockMeta())
         mock_dataset_model.query.all.return_value = [d]
@@ -271,5 +268,3 @@ class TestRecommendationEngine:
         engine = RecommendationEngine(flask_app)
         # Debe generar df vacío y no lanzar excepción
         assert engine.df.empty
-
-

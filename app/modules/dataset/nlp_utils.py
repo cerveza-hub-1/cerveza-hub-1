@@ -1,11 +1,11 @@
 import re
 import warnings
 from collections import Counter
+from functools import lru_cache
 from typing import List
 
 import contractions
 import spacy
-from functools import lru_cache
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from nltk import pos_tag
 from nltk.corpus import stopwords
@@ -17,6 +17,7 @@ from nltk.tokenize import word_tokenize
 @lru_cache()
 def get_nlp():
     return spacy.load("en_core_web_sm")
+
 
 palabras_vacias_ingles = set(stopwords.words("english"))
 
@@ -87,10 +88,10 @@ def expand_corpus_with_synonyms(documento: List[str]) -> List[str]:
     expanded_doc = []
 
     for word, count in doc_counter.items():
-        expanded_doc.extend([word] * count)  
+        expanded_doc.extend([word] * count)
         synonyms = expand_term(word)
         for syn in synonyms:
-            expanded_doc.extend([syn] * count)  
+            expanded_doc.extend([syn] * count)
 
     return expanded_doc
 

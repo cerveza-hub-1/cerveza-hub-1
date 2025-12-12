@@ -99,13 +99,15 @@ class RecommendationEngine:
                 desc_text = metadata.description or "NoDescription"
                 pub_type_text = metadata.publication_type.value if metadata.publication_type else "NoPublicationType"
 
-                raw_combined_text = " ".join([title_text, desc_text, pub_type_text, authors_text, affiliation_text, tags_text])
+                raw_combined_text = " ".join(
+                    [title_text, desc_text, pub_type_text, authors_text, affiliation_text, tags_text]
+                )
 
                 full_text_processed = nlp_utils.proceso_contenido_completo(raw_combined_text)
 
                 if not full_text_processed.strip():
                     full_text_processed = "NoData"
-                
+
                 corpus_data.append(
                     {
                         "dataset_id": ds.id,
