@@ -107,10 +107,8 @@ def verify_2fa():
         profile.twofa_enabled = True
         profile.twofa_confirmed = True
         profile.save()
-        flash("2FA authentication enabled!", "success")
         return redirect(url_for("profile.my_profile"))
     else:
-        flash("Invalid code. Try again.", "error")
         return redirect(url_for("profile.enable_2fa"))
 
 
