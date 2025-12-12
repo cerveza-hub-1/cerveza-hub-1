@@ -6,6 +6,7 @@ import tempfile
 import uuid
 from typing import Dict, List, Optional
 
+from app.modules.dataset import nlp_utils
 import pandas as pd
 from flask import request
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -21,7 +22,6 @@ from app.modules.csvmodel.repositories import (
     CSVModelRepository,
     FMMetaDataRepository,
 )
-from app.modules.dataset import nlp_utils
 from app.modules.dataset.models import DataSet, DSDownloadRecord, DSMetaData, DSViewRecord
 from app.modules.dataset.repositories import (
     AuthorRepository,
@@ -71,7 +71,6 @@ class RecommendationEngine:
         logger.debug("--- INICIO: Extracción de corpus de la Base de Datos ---")
 
         with self.app.app_context():
-
             datasets = DataSet.query.all()
             if not datasets:
                 logger.warning("No se encontraron DataSets en la base de datos.")
@@ -80,39 +79,44 @@ class RecommendationEngine:
             for ds in datasets:
                 metadata: DSMetaData = ds.ds_meta_data
 
-                # Autores
-                authors_names = []
-                affiliation_names = []
+                # AUTOR NOMBRES Y AFILIACIONES
+                authors = []
+                affiliations = []
+                for a in metadata.authors or []:
+                    if a.name:
+                        authors.append(a.name.lower())
+                    if a.affiliation:
+                        affiliations.append(a.affiliation.lower())
 
-                for author in metadata.authors or []:
-                    if author.name:
-                        authors_names.append(author.name.lower())
-
-                    if author.affiliation:
-                        affiliation_names.append(author.affiliation.lower())
-
-                # TAGS (Fix del error)
+                # TAGS
+                tags = []
                 if metadata.tags:
-                    tags_list = [tag.strip().lower() for tag in metadata.tags.split(",") if tag.strip()]
-                else:
-                    tags_list = []
+                    tags = [t.strip().lower() for t in metadata.tags.split(",") if t.strip()]
 
-                # Publicación
                 publication_type = str(metadata.publication_type).lower() if metadata.publication_type else ""
 
-                # Construcción del texto
-                text_parts = [
-                    " ".join(authors_names),
-                    " ".join(affiliation_names),
-                    " ".join(tags_list),
-                    publication_type,
-                ]
+                combined_text = " ".join([
+                    " ".join(authors),
+                    " ".join(affiliations),
+                    " ".join(tags),
+                    publication_type
+                ])
 
-                combined_text = " ".join([p for p in text_parts if p])
+                full_text_processed = nlp_utils.proceso_contenido_completo(combined_text)
+                    
+                corpus_data.append(
+                    {
+                        "dataset_id": ds.id,
+                        "title": metadata.title or "",
+                        "dataset_doi": metadata.dataset_doi or "",
+                        "authors": " ".join(authors),
+                        "tags": " ".join(tags),
+                        "affiliation": " ".join(affiliations),
+                        "full_text_corpus": full_text_processed
+                    }
+                )
 
-                corpus_data.append(CorpusRecord(dataset_id=ds.id, text=combined_text))
-
-        logger.debug("--- FIN: Extracción de corpus de la Base de Datos ---")
+        logger.debug("--- FIN: Extracción del Corpus ---")
         return corpus_data
 
     def _create_whoosh_index(self, field_name: str):
