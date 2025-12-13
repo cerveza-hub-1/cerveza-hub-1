@@ -135,20 +135,6 @@ def test_upload_dataset():
 # Call the test function
 test_upload_dataset()
 
-import time
-
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-
-from core.environment.host import get_host_for_selenium_testing
-from core.selenium.common import close_driver, initialize_driver
-
-
-def wait_for_page_to_load(driver, timeout=4):
-    WebDriverWait(driver, timeout).until(
-        lambda driver: driver.execute_script("return document.readyState") == "complete"
-    )
-
 
 def test_recommendations_box():
     driver = initialize_driver()
