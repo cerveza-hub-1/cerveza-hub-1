@@ -398,7 +398,6 @@ class DataSetService(BaseService):
         except Exception as e:
             logger.error(f"FALLO al re-entrenar el motor de recomendación: {e}")
 
-
         return dataset
 
     def update_dsmetadata(self, ds_id, **kwargs):
