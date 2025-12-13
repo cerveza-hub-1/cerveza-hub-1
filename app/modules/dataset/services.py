@@ -40,7 +40,7 @@ from core.services.BaseService import BaseService
 
 logger = logging.getLogger(__name__)
 
-CorpusRecord = Dict[str, any]
+CorpusRecord = dict[str, any]
 INDEXABLE_FIELDS = ["authors", "tags", "affiliation"]
 
 
@@ -67,15 +67,11 @@ class RecommendationEngine:
         logger.info("RecommendationEngine initialized.")
 
     def _get_corpus_data_from_db(self) -> List[CorpusRecord]:
-        """Extrae los metadatos de los DataSets que son relevantes para la similitud."""
-
         corpus_data: List[CorpusRecord] = []
         logger.debug("--- INICIO: Extracción de corpus de la Base de Datos ---")
 
         with self.app.app_context():
-
             datasets = DataSet.query.all()
-
             if not datasets:
                 logger.warning("No se encontraron DataSets en la base de datos.")
                 return []
@@ -83,42 +79,39 @@ class RecommendationEngine:
             for ds in datasets:
                 metadata: DSMetaData = ds.ds_meta_data
 
-                authors_names = []
-                affiliation_names = []
-                for author in metadata.authors:
-                    authors_names.append(author.name.lower())
-                    if author.affiliation:
-                        affiliation_names.append(author.affiliation.lower())
+                # AUTOR NOMBRES Y AFILIACIONES
+                authors = []
+                affiliations = []
+                for a in metadata.authors or []:
+                    if a.name:
+                        authors.append(a.name.lower())
+                    if a.affiliation:
+                        affiliations.append(a.affiliation.lower())
 
-                tags_list = [tag.strip().lower() for tag in metadata.tags.split(",") if metadata.tags]
+                # TAGS
+                tags = []
+                if metadata.tags:
+                    tags = [t.strip().lower() for t in metadata.tags.split(",") if t.strip()]
 
-                text_components_raw = [
-                    metadata.title,
-                    metadata.description,
-                    metadata.publication_type.value,
-                    " ".join(authors_names),
-                    " ".join(affiliation_names),
-                    " ".join(tags_list),
-                ]
+                publication_type = str(metadata.publication_type).lower() if metadata.publication_type else ""
 
-                raw_combined_text = " ".join(filter(None, text_components_raw))
+                combined_text = " ".join([" ".join(authors), " ".join(affiliations), " ".join(tags), publication_type])
 
-                full_text_processed = nlp_utils.proceso_contenido_completo(raw_combined_text)
+                full_text_processed = nlp_utils.proceso_contenido_completo(combined_text)
 
                 corpus_data.append(
                     {
                         "dataset_id": ds.id,
-                        "title": metadata.title,
-                        "description": metadata.description,
-                        "authors": " ".join(authors_names),
-                        "affiliation": " ".join(affiliation_names),
-                        "tags": " ".join(tags_list),
-                        "dataset_doi": metadata.dataset_doi,
+                        "title": metadata.title or "",
+                        "dataset_doi": metadata.dataset_doi or "",
+                        "authors": " ".join(authors),
+                        "tags": " ".join(tags),
+                        "affiliation": " ".join(affiliations),
                         "full_text_corpus": full_text_processed,
                     }
                 )
 
-        logger.info(f"Corpus extraction complete. {len(corpus_data)} records retrieved.")
+        logger.debug("--- FIN: Extracción del Corpus ---")
         return corpus_data
 
     def _create_whoosh_index(self, field_name: str):
