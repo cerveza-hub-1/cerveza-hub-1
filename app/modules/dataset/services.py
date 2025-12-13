@@ -394,9 +394,10 @@ class DataSetService(BaseService):
             engine = self._get_or_create_engine()
             engine.force_retrain()
             logger.info("Motor de recomendación re-entrenado.")
+            logger.info("Datasets cargados en motor: %s", engine.df["dataset_id"].tolist())
         except Exception as e:
-            # No fallar la creación del dataset si el motor falla, solo registrarlo
             logger.error(f"FALLO al re-entrenar el motor de recomendación: {e}")
+
 
         return dataset
 
