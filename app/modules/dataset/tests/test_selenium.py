@@ -134,3 +134,55 @@ def test_upload_dataset():
 
 # Call the test function
 test_upload_dataset()
+
+import time
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+
+from core.environment.host import get_host_for_selenium_testing
+from core.selenium.common import close_driver, initialize_driver
+
+
+def wait_for_page_to_load(driver, timeout=4):
+    WebDriverWait(driver, timeout).until(
+        lambda driver: driver.execute_script("return document.readyState") == "complete"
+    )
+
+
+def test_recommendations_box():
+    driver = initialize_driver()
+    try:
+        host = get_host_for_selenium_testing()
+
+        # Login primero
+        driver.get(f"{host}/login")
+        wait_for_page_to_load(driver)
+        driver.find_element(By.NAME, "email").send_keys("user1@example.com")
+        driver.find_element(By.NAME, "password").send_keys("1234" + "\ue007")  # RETURN
+        time.sleep(3)
+        wait_for_page_to_load(driver)
+
+        # Ir a la lista de datasets y abrir el primero
+        driver.get(f"{host}/dataset/list")
+        wait_for_page_to_load(driver)
+
+        # Coger el primer enlace de dataset
+        first_dataset_link = driver.find_element(By.XPATH, "//table//tbody//tr[1]//a")
+        first_dataset_link.click()
+        wait_for_page_to_load(driver)
+
+        recommendations_box = driver.find_elements(
+            By.XPATH,
+            "//ul[contains(@class,'list-group-flush')] | //p[contains(text(),'No se encontraron recomendaciones')]",
+        )
+
+        assert len(recommendations_box) > 0, "No se encontró el recuadro de recomendaciones"
+
+        print("Test recommendations box passed!")
+
+    finally:
+        close_driver(driver)
+
+
+test_recommendations_box()
