@@ -145,3 +145,5 @@ WTForms==3.2.1
 zope.event==5.1.1
 zope.interface==7.2
 zstandard==0.23.0
+Pillow==11.3.0
+pyzbar==0.1.9
