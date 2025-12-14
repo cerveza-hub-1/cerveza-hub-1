@@ -167,6 +167,7 @@ def test_get_most_downloaded_datasets_failure(client, monkeypatch):
 def test_get_most_viewed_datasets_unit():
     service = DataSetService()
 
+    # Datos simulados que "devolvería" la base de datos
     fake_results = [
         MagicMock(id=1, title="Dataset A", doi="doi-a", views=15),
         MagicMock(id=2, title="Dataset B", doi="doi-b", views=12),
@@ -183,6 +184,7 @@ def test_get_most_viewed_datasets_unit():
     with patch("app.modules.dataset.services.db.session") as mock_session:
         mock_query = MagicMock()
 
+        # Configurar la cadena de métodos de la base de datos simulada
         mock_query.join.return_value = mock_query
         mock_query.outerjoin.return_value = mock_query
         mock_query.order_by.return_value = mock_query
@@ -191,8 +193,10 @@ def test_get_most_viewed_datasets_unit():
 
         mock_session.query.return_value = mock_query
 
+        # Ejecutar el método
         result = service.get_most_viewed_datasets(limit=10)
 
+    # Validar salida final
     assert result == [
         {"id": 1, "title": "Dataset A", "views": 15, "doi": "doi-a"},
         {"id": 2, "title": "Dataset B", "views": 12, "doi": "doi-b"},
@@ -206,6 +210,7 @@ def test_get_most_viewed_datasets_unit():
         {"id": 10, "title": "Dataset J", "views": 0, "doi": "doi-j"},
     ]
 
+    # Validar llamadas clave
     mock_session.query.assert_called()
     mock_query.limit.assert_called_once_with(10)
     mock_query.order_by.assert_called_once()
@@ -215,6 +220,7 @@ def test_get_most_viewed_datasets_unit():
 def test_get_most_downloaded_datasets_unit():
     service = DataSetService()
 
+    # Datos simulados devueltos por SQLAlchemy
     fake_results = [
         MagicMock(id=1, title="Dataset A", doi="doi-a", downloads=15),
         MagicMock(id=2, title="Dataset B", doi="doi-b", downloads=12),
@@ -231,6 +237,7 @@ def test_get_most_downloaded_datasets_unit():
     with patch("app.modules.dataset.services.db.session") as mock_session:
         mock_query = MagicMock()
 
+        # Encadenado de métodos típico de SQLAlchemy
         mock_query.join.return_value = mock_query
         mock_query.outerjoin.return_value = mock_query
         mock_query.order_by.return_value = mock_query
@@ -239,8 +246,10 @@ def test_get_most_downloaded_datasets_unit():
 
         mock_session.query.return_value = mock_query
 
+        # Ejecutar la función
         result = service.get_most_downloaded_datasets(limit=5)
 
+    # Validar salida final transformada
     assert result == [
         {"id": 1, "title": "Dataset A", "downloads": 15, "doi": "doi-a"},
         {"id": 2, "title": "Dataset B", "downloads": 12, "doi": "doi-b"},
@@ -398,6 +407,7 @@ def test_upload_success(client, monkeypatch):
 
     monkeypatch.setattr(FileStorage, "save", fake_filestorage_save)
 
+    # Archivo que Flask procesará como FileStorage real
     file_data = (BytesIO(b"col1,col2\n1,2"), "test.csv")
 
     response = client.post(
@@ -412,6 +422,7 @@ def test_upload_success(client, monkeypatch):
     assert data["message"] == "CSV uploaded and validated successfully"
     assert data["filename"] == "test.csv"
 
+    # Confirmar que el archivo fue "guardado"
     assert saved_path["path"].endswith("test.csv")
 
 
