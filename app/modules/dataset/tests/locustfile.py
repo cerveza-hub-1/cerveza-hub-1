@@ -21,7 +21,7 @@ class DatasetBehavior(TaskSet):
         self.csrf = get_csrf_token(response)
 
     # --------------------------------------------------
-    # 2) Validar CSV 
+    # 2) Validar CSV
     # --------------------------------------------------
     @task
     def validate_csv(self):
