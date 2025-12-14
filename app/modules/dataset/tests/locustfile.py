@@ -13,7 +13,7 @@ class DatasetBehavior(TaskSet):
         self.dataset_page()
 
     # --------------------------------------------------
-    # 1) Cargar la página de upload (lo que ya tenías)
+    # 1) Cargar la página de upload
     # --------------------------------------------------
     @task
     def dataset_page(self):
@@ -21,7 +21,7 @@ class DatasetBehavior(TaskSet):
         self.csrf = get_csrf_token(response)
 
     # --------------------------------------------------
-    # 2) Validar CSV con /dataset/file/validate
+    # 2) Validar CSV 
     # --------------------------------------------------
     @task
     def validate_csv(self):
