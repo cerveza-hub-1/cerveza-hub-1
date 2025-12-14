@@ -1,6 +1,7 @@
 import re
 import warnings
 from collections import Counter
+from functools import lru_cache
 from typing import List
 
 import contractions
@@ -12,7 +13,11 @@ from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
-nlp = spacy.load("en_core_web_sm")
+
+@lru_cache()
+def get_nlp():
+    return spacy.load("en_core_web_sm")
+
 
 palabras_vacias_ingles = set(stopwords.words("english"))
 
@@ -47,7 +52,7 @@ def elimina_no_alfanumerico(contenido: List[str]) -> List[str]:
 
 
 def elimina_palabras_vacias(contenido: List[str]) -> List[str]:
-    """Elimina palabras vacías (stopwords) usando la lista unificada (inglés + español)."""
+    """Elimina palabras vacías (stopwords)."""
     return [palabra for palabra in contenido if palabra not in palabras_vacias_ingles]
 
 
@@ -83,22 +88,15 @@ def expand_corpus_with_synonyms(documento: List[str]) -> List[str]:
     expanded_doc = []
 
     for word, count in doc_counter.items():
-        # Añadir la palabra original las veces que aparece
         expanded_doc.extend([word] * count)
         synonyms = expand_term(word)
         for syn in synonyms:
-            # Ponderar los sinónimos igual que la palabra original (para TF-IDF)
             expanded_doc.extend([syn] * count)
 
     return expanded_doc
 
 
 def proceso_contenido_completo(texto: str) -> str:
-    """
-    Aplica todo el pipeline de procesamiento de texto (limpieza, normalización,
-    lematización, noun chunks y expansión de sinónimos) y devuelve una cadena
-    preparada para TF-IDF.
-    """
 
     texto = elimina_html(texto)
     texto = expandir_contracciones(texto)
@@ -109,7 +107,6 @@ def proceso_contenido_completo(texto: str) -> str:
     tokens = elimina_no_alfanumerico(tokens)
     tokens = elimina_palabras_vacias(tokens)
     tokens = lematizador(tokens)
-
     tokens = expand_corpus_with_synonyms(tokens)
 
     return " ".join(tokens)

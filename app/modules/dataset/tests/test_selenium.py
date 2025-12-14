@@ -55,7 +55,7 @@ def test_upload_dataset():
         driver.get(f"{host}/dataset/upload")
         wait_for_page_to_load(driver)
 
-        # Find basic info and UVL model and fill values
+        # Find basic info and csv model and fill values
         title_field = driver.find_element(By.NAME, "title")
         title_field.send_keys("Title")
         desc_field = driver.find_element(By.NAME, "desc")
@@ -83,8 +83,10 @@ def test_upload_dataset():
         affiliation_field1.send_keys("Club1")
 
         # Obtén las rutas absolutas de los archivos
-        file1_path = os.path.abspath("app/modules/dataset/uvl_examples/file1.uvl")
-        file2_path = os.path.abspath("app/modules/dataset/uvl_examples/file2.uvl")
+        file1_path = os.path.abspath("app/modules/dataset/csv_examples/file1.csv")
+        file2_path = os.path.abspath("app/modules/dataset/csv_examples/file2.csv")
+        # csv invalido
+        invalid_csv_path = os.path.abspath("app/modules/dataset/csv_examples/file15.csv")
 
         # Subir el primer archivo
         dropzone = driver.find_element(By.CLASS_NAME, "dz-hidden-input")
@@ -96,17 +98,15 @@ def test_upload_dataset():
         dropzone.send_keys(file2_path)
         wait_for_page_to_load(driver)
 
-        # Add authors in UVL models
-        show_button = driver.find_element(By.ID, "0_button")
-        show_button.send_keys(Keys.RETURN)
-        add_author_uvl_button = driver.find_element(By.ID, "0_form_authors_button")
-        add_author_uvl_button.send_keys(Keys.RETURN)
+        # Subir el CSV inválido
+        dropzone = driver.find_element(By.CLASS_NAME, "dz-hidden-input")
+        dropzone.send_keys(invalid_csv_path)
         wait_for_page_to_load(driver)
 
-        name_field = driver.find_element(By.NAME, "feature_models-0-authors-2-name")
-        name_field.send_keys("Author3")
-        affiliation_field = driver.find_element(By.NAME, "feature_models-0-authors-2-affiliation")
-        affiliation_field.send_keys("Club3")
+        # Esperar a que Dropzone muestre error
+        WebDriverWait(driver, 5).until(
+            lambda d: len(d.find_elements(By.XPATH, "//div[contains(@class, 'dz-error-message')]")) > 0
+        )
 
         # Check I agree and send form
         check = driver.find_element(By.ID, "agreeCheckbox")
@@ -116,7 +116,7 @@ def test_upload_dataset():
         upload_btn = driver.find_element(By.ID, "upload_button")
         upload_btn.send_keys(Keys.RETURN)
         wait_for_page_to_load(driver)
-        time.sleep(2)  # Force wait time
+        time.sleep(7)  # Force wait time
 
         assert driver.current_url == f"{host}/dataset/list", "Test failed!"
 
@@ -134,3 +134,41 @@ def test_upload_dataset():
 
 # Call the test function
 test_upload_dataset()
+
+
+def test_recommendations_box():
+    driver = initialize_driver()
+    try:
+        host = get_host_for_selenium_testing()
+
+        # Login primero
+        driver.get(f"{host}/login")
+        wait_for_page_to_load(driver)
+        driver.find_element(By.NAME, "email").send_keys("user1@example.com")
+        driver.find_element(By.NAME, "password").send_keys("1234" + "\ue007")  # RETURN
+        time.sleep(3)
+        wait_for_page_to_load(driver)
+
+        # Ir a la lista de datasets y abrir el primero
+        driver.get(f"{host}/dataset/list")
+        wait_for_page_to_load(driver)
+
+        # Coger el primer enlace de dataset
+        first_dataset_link = driver.find_element(By.XPATH, "//table//tbody//tr[1]//a")
+        first_dataset_link.click()
+        wait_for_page_to_load(driver)
+
+        recommendations_box = driver.find_elements(
+            By.XPATH,
+            "//ul[contains(@class,'list-group-flush')] | //p[contains(text(),'No se encontraron recomendaciones')]",
+        )
+
+        assert len(recommendations_box) > 0, "No se encontró el recuadro de recomendaciones"
+
+        print("Test recommendations box passed!")
+
+    finally:
+        close_driver(driver)
+
+
+test_recommendations_box()

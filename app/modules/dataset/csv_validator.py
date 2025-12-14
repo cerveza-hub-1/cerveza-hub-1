@@ -5,14 +5,13 @@ def validate_csv_content(file_content: str):
     file_content = file_content.lstrip("\ufeff")
 
     try:
-        # 2. Detectar dialecto (delimitador automático)
         sniffer = csv.Sniffer()
         lines = file_content.splitlines()
-        sample = "\n".join(lines[:10])  # suficiente para detectar
+        sample = "\n".join(lines[:10])
         try:
             dialect = sniffer.sniff(sample, delimiters=[",", ";", "\t"])
         except csv.Error:
-            dialect = csv.excel  # fallback si no detecta
+            dialect = csv.excel
         reader = csv.reader(lines, dialect)
 
         # 3. Ignorar filas vacías
@@ -31,7 +30,7 @@ def validate_csv_content(file_content: str):
             }
 
         # 5. Validar filas
-        for i, row in enumerate(rows[1:], start=2):  # empezamos desde la fila 2 (después de la cabecera)
+        for i, row in enumerate(rows[1:], start=2):
             if len(row) != len(expected_header):
                 return False, {
                     "message": "Invalid CSV format",

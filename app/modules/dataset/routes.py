@@ -95,6 +95,14 @@ def create_dataset():
                 if doi:
                     dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=doi)
                     logger.info(f"DOI actualizado: {doi}")
+                    try:
+                        logger.info("DOI actualizado. Re-entrenando el motor de recomendación...")
+                        engine = dataset_service._get_or_create_engine()
+                        engine.force_retrain()
+                        logger.info("Motor de recomendación re-entrenado.")
+                        logger.info("Datasets cargados en motor: %s", engine.df["dataset_id"].tolist())
+                    except Exception as e:
+                        logger.error(f"FALLO al re-entrenar el motor de recomendación: {e}")
 
                 # update DOI
                 # deposition_doi = zenodo_service.get_doi(deposition_id)

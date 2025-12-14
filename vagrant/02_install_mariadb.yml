@@ -1,30 +1,31 @@
 ---
-- hosts: all
+- name: 2. INSTALL MARIADB - Server and Databases Setup
+  hosts: all
   become: true
 
   tasks:
-    - name: Install MariaDB Server
-      apt:
+    - name: Install MariaDB Server and PyMySQL package
+      ansible.builtin.apt:
         name:
           - mariadb-server
           - python3-pymysql
-        update_cache: yes
+        update_cache: true
 
     - name: Start and enable MariaDB service
-      systemd:
+      ansible.builtin.systemd:
         name: mariadb
         state: started
-        enabled: yes
+        enabled: true
 
     - name: Check if MariaDB root password is already set
-      shell: "mysql -u root -p'{{ mariadb_root_password }}' -e 'SELECT 1;'"
+      ansible.builtin.shell: "mysql -u root -p'{{ mariadb_root_password }}' -e 'SELECT 1;'"
       register: mariadb_root_check
       failed_when: mariadb_root_check.rc not in [0, 1]
       changed_when: false
       ignore_errors: true
 
     - name: Set MariaDB root password if not set
-      mysql_user:
+      community.mysql.mysql_user:
         login_unix_socket: /run/mysqld/mysqld.sock
         login_user: 'root'
         login_password: ''
@@ -34,7 +35,7 @@
       when: mariadb_root_check.failed
 
     - name: Create .my.cnf for root
-      copy:
+      ansible.builtin.copy:
         dest: /root/.my.cnf
         content: |
           [client]
@@ -44,7 +45,7 @@
         mode: '0600'
 
     - name: Create SQL script
-      copy:
+      ansible.builtin.copy:
         content: |
           CREATE DATABASE IF NOT EXISTS {{ mariadb_database }};
           CREATE DATABASE IF NOT EXISTS {{ mariadb_test_database }};
@@ -53,11 +54,13 @@
           GRANT ALL PRIVILEGES ON {{ mariadb_test_database }}.* TO '{{ mariadb_user }}'@'localhost';
           FLUSH PRIVILEGES;
         dest: /tmp/setup.sql
+        mode: '0644' # Añadido modo
 
     - name: Import SQL script
-      command: bash -c "mysql < /tmp/setup.sql"
+      ansible.builtin.command: bash -c "mysql < /tmp/setup.sql"
+      changed_when: true # Forzamos changed_when: true ya que ejecuta SQL DDL/DCL
 
     - name: Remove temporary SQL script
-      file:
+      ansible.builtin.file:
         path: /tmp/setup.sql
         state: absent

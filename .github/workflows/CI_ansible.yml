@@ -1,0 +1,40 @@
+# .github/workflows/CI_ansible.yml
+# ----------------------------------------------------------------------------
+# Ansible Syntax Check Workflow
+# Checks the syntax and linting of the Ansible playbooks and roles.
+# ----------------------------------------------------------------------------
+
+name: Ansible Syntax Check
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'trunk'
+      - 'feature_*'
+
+jobs:
+  ansible_lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Ansible, Lint, and Collections
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+          python3 -m pip install --upgrade pip
+          pip install ansible ansible-lint
+          ansible-galaxy collection install community.mysql
+
+        # Verifica la sintaxis del playbook principal
+      - name: Check Ansible Playbook Syntax (00_main.yml)
+        run: |
+          ansible-playbook vagrant/00_main.yml --syntax-check
+        working-directory: ./
+        
+      - name: Run Ansible Lint
+        run: ansible-lint vagrant/00_main.yml
+        working-directory: ./

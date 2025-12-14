@@ -94,7 +94,6 @@ def verify_2fa():
             # Si el código es correcto entonces se completa el login
             login_user(user, remember=True)
             session.pop("pending_2fa_user_id", None)
-            flash("2FA login succesfull.", "success")
             return redirect(url_for("public.index"))
         else:
             flash("Invalid code. Try again.", "error")
