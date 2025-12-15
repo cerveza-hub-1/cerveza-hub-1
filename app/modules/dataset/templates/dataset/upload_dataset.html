@@ -249,6 +249,12 @@
                                     alert.textContent = 'Invalid file extension: ' + file.name;
                                     alerts.appendChild(alert);
                                     alerts.style.display = 'block';
+                                    setTimeout(() => {
+                                        alert.remove();
+                                        if (alerts.children.length === 0) {
+                                            alerts.style.display = 'none';
+                                        }
+                                    }, 5000);
                                 }
 
                             });
@@ -425,6 +431,12 @@
                                 alert.textContent = 'csv not valid: ' + file.name;
                                 alerts.appendChild(alert);
                                 alerts.style.display = 'block';
+                                setTimeout(() => {
+                                    alert.remove();
+                                    if (alerts.children.length === 0) {
+                                        alerts.style.display = 'none';
+                                    }
+                                }, 5000);
                             });
 
                         }

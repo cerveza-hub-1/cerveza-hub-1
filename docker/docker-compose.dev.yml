@@ -25,6 +25,13 @@ services:
     build:
       context: ../
       dockerfile: docker/images/Dockerfile.mariadb
+
+    environment:
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: cerveza_hub
+      MARIADB_USER: uvlhubdb_user
+      MARIADB_PASSWORD: uvlhubdb_password
+
     restart: always
     ports:
       - "3307:3306"
