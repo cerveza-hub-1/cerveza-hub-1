@@ -1,3 +1,46 @@
+## 3.3.0 (2025-12-15)
+
+### Feat
+
+- **tests**: implementación tests de locusts de la WIS 101
+- **tests**: Implementación tests de locusts de la WIS 101
+- **tests**: add recommendations box test to verify dataset recommendations
+- **tests**: add test for recommendations box in dataset listing
+- **tests**: enhance locust tests with login functionality and DOI dataset view
+- **requirements**: add Pillow and pyzbar to dependencies
+- **tests**: enhance unit tests with mock datasets and additional fixtures fix(nlp): refactor NLP model loading to use caching fix(services): improve corpus data extraction logic and clean up variable names chore(requirements): specify versions for dependencies and remove duplicates
+- **tests**: enhance unit tests for dataset validation and recommendation engine
+- **flamappy**: se eliminaron y modificaron todos los archivos relacionados con flamapy
+
+### Fix
+
+- descarga de paquete en dockerfile.dev
+- cambios en docker compose
+- **dataset**: mas cambios en algunos tests
+- **dataset**: cambios en algunos tests
+- **dataset**: cambios en algunos tests
+- **dataset**: se aplico el isort  y el black
+- **dataset**: cambios en algunos tests
+- **dataset**: remove unnecessary blank line in DataSetService
+- **dataset**: add engine retraining in  DOI update
+- **requirements**: remove unintended dependency deletions
+- **services**:  Some functions were fixed
+- **services**: improve metadata handling by providing default values for missing fields
+- **services**: handle None values in metadata fields for robust text processing
+- **conftest**: Fix coverage execution
+- **dataset**: cuando subes con user1 ya no da fallo
+- arreglado docker compose
+
+### Refactor
+
+- **tests**: remove unused imports and redundant wait function in test_selenium.py
+- **services**: reorder import statement for nlp_utils and simplify combined_text construction refactor(tests): update test assertions to check for 'full_text_corpus' instead of 'text'
+- **tests**: enhance test fixtures and improve dataset validation tests
+- **services**: update CorpusRecord type hint and improve corpus data extraction logic
+- **tests**: enhance mock classes and fixtures in test_unit.py
+- **tests**: remove unused imports in test_unit.py
+- clean up imports and improve formatting in multiple files
+
 ## 3.2.0 (2025-12-12)
 
 ### Feat
