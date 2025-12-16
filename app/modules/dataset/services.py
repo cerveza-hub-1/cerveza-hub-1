@@ -22,7 +22,12 @@ from app.modules.csvmodel.repositories import (
     FMMetaDataRepository,
 )
 from app.modules.dataset import nlp_utils
-from app.modules.dataset.models import DataSet, DSDownloadRecord, DSMetaData, DSViewRecord
+from app.modules.dataset.models import (
+    DataSet,
+    DSDownloadRecord,
+    DSMetaData,
+    DSViewRecord,
+)
 from app.modules.dataset.repositories import (
     AuthorRepository,
     DataSetRepository,
@@ -91,13 +96,28 @@ class RecommendationEngine:
                 # TAGS
                 tags = []
                 if metadata.tags:
-                    tags = [t.strip().lower() for t in metadata.tags.split(",") if t.strip()]
+                    tags = [
+                        t.strip().lower() for t in metadata.tags.split(",") if t.strip()
+                    ]
 
-                publication_type = str(metadata.publication_type).lower() if metadata.publication_type else ""
+                publication_type = (
+                    str(metadata.publication_type).lower()
+                    if metadata.publication_type
+                    else ""
+                )
 
-                combined_text = " ".join([" ".join(authors), " ".join(affiliations), " ".join(tags), publication_type])
+                combined_text = " ".join(
+                    [
+                        " ".join(authors),
+                        " ".join(affiliations),
+                        " ".join(tags),
+                        publication_type,
+                    ]
+                )
 
-                full_text_processed = nlp_utils.proceso_contenido_completo(combined_text)
+                full_text_processed = nlp_utils.proceso_contenido_completo(
+                    combined_text
+                )
 
                 corpus_data.append(
                     {
@@ -124,7 +144,10 @@ class RecommendationEngine:
 
         os.makedirs(index_dir, exist_ok=True)
 
-        schema = Schema(doc_id=ID(stored=True, unique=True), content=TEXT(stored=True, analyzer=StemmingAnalyzer()))
+        schema = Schema(
+            doc_id=ID(stored=True, unique=True),
+            content=TEXT(stored=True, analyzer=StemmingAnalyzer()),
+        )
 
         ix = create_in(index_dir, schema)
         writer = ix.writer()
@@ -140,10 +163,14 @@ class RecommendationEngine:
         """Entrena modelos TF-IDF para el corpus completo y crea índices Whoosh para campos específicos."""
 
         if self.df.empty or "full_text_corpus" not in self.df.columns:
-            logger.warning("DataFrame está vacío o falta 'full_text_corpus'. Saltando entrenamiento.")
+            logger.warning(
+                "DataFrame está vacío o falta 'full_text_corpus'. Saltando entrenamiento."
+            )
             return
 
-        vectorizer = TfidfVectorizer(tokenizer=lambda x: x.split(), preprocessor=lambda x: x, stop_words=None)
+        vectorizer = TfidfVectorizer(
+            tokenizer=lambda x: x.split(), preprocessor=lambda x: x, stop_words=None
+        )
         matrix = vectorizer.fit_transform(self.df["full_text_corpus"])
 
         self.models["full_text_corpus"] = {"vectorizer": vectorizer, "matrix": matrix}
@@ -152,13 +179,18 @@ class RecommendationEngine:
             field_vectorizer = TfidfVectorizer(token_pattern=r"\b\w+\b")
             field_matrix = field_vectorizer.fit_transform(self.df[field])
 
-            self.models[field] = {"vectorizer": field_vectorizer, "matrix": field_matrix}
+            self.models[field] = {
+                "vectorizer": field_vectorizer,
+                "matrix": field_matrix,
+            }
 
             whoosh_ix = self._create_whoosh_index(field)
             self.whoosh_indices[field] = whoosh_ix
 
         logger.info("TF-IDF models trained for fields: %s.", list(self.models.keys()))
-        logger.info("Whoosh indices created for fields: %s.", list(self.whoosh_indices.keys()))
+        logger.info(
+            "Whoosh indices created for fields: %s.", list(self.whoosh_indices.keys())
+        )
 
     def _initialize_engine(self):
         """Carga los datos y entrena el modelo."""
@@ -191,46 +223,59 @@ class DataSetService(BaseService):
         self.hubfileviewrecord_repository = HubfileViewRecordRepository()
 
     def _get_or_create_engine(self) -> "RecommendationEngine":
-
         if DataSetService._recommendation_engine is None:
             # Importación local para evitar la dependencia circular al inicio
             from app import app as flask_app_instance
 
             logger.info("Inicializando RecommendationEngine (singleton)...")
-            DataSetService._recommendation_engine = RecommendationEngine(flask_app_instance)
+            DataSetService._recommendation_engine = RecommendationEngine(
+                flask_app_instance
+            )
         return DataSetService._recommendation_engine
 
     def get_similar_datasets(
-        self, target_dataset_id: int, field_type: str = "full_text_corpus", top_n: int = 5
+        self,
+        target_dataset_id: int,
+        field_type: str = "full_text_corpus",
+        top_n: int = 5,
     ) -> List[Dict]:
-
         engine = self._get_or_create_engine()
 
         valid_fields = list(engine.models.keys())
         if field_type not in valid_fields:
-            logger.warning(f"Field type '{field_type}' not found in models. Using default: 'full_text_corpus'.")
+            logger.warning(
+                f"Field type '{field_type}' not found in models. Using default: 'full_text_corpus'."
+            )
             field_type = "full_text_corpus"
 
         model = engine.models.get(field_type)
         df = engine.df
 
         if df.empty or model is None:
-            logger.warning("Motor de recomendación no entrenado o DataFrame vacío. Devolviendo [].")
+            logger.warning(
+                "Motor de recomendación no entrenado o DataFrame vacío. Devolviendo []."
+            )
             return []
 
         try:
             target_index = df.index[df["dataset_id"] == target_dataset_id].tolist()
         except KeyError:
-            logger.error("Columna 'dataset_id' no encontrada en el DataFrame del motor.")
+            logger.error(
+                "Columna 'dataset_id' no encontrada en el DataFrame del motor."
+            )
             return []
 
         if not target_index:
-            logger.warning(f"Dataset ID {target_dataset_id} no encontrado en el motor. Devolviendo [].")
+            logger.warning(
+                f"Dataset ID {target_dataset_id} no encontrado en el motor. Devolviendo []."
+            )
             return []
 
         target_idx = target_index[0]
 
-        cosine_sim = cosine_similarity(model["matrix"][target_idx], model["matrix"]).flatten()
+        cosine_sim = cosine_similarity(
+            model["matrix"][target_idx], model["matrix"]
+        ).flatten()
 
         # Obtiene los índices de mayor similitud (excluyendo el propio dataset)
         similar_indices = cosine_sim.argsort()[: -top_n - 1 : -1]
@@ -256,7 +301,9 @@ class DataSetService(BaseService):
         source_dir = current_user.temp_folder()
 
         working_dir = os.getenv("WORKING_DIR", "")
-        dest_dir = os.path.join(working_dir, "uploads", f"user_{current_user.id}", f"dataset_{dataset.id}")
+        dest_dir = os.path.join(
+            working_dir, "uploads", f"user_{current_user.id}", f"dataset_{dataset.id}"
+        )
 
         os.makedirs(dest_dir, exist_ok=True)
 
@@ -270,7 +317,9 @@ class DataSetService(BaseService):
     def get_unsynchronized(self, current_user_id: int) -> DataSet:
         return self.repository.get_unsynchronized(current_user_id)
 
-    def get_unsynchronized_dataset(self, current_user_id: int, dataset_id: int) -> DataSet:
+    def get_unsynchronized_dataset(
+        self, current_user_id: int, dataset_id: int
+    ) -> DataSet:
         return self.repository.get_unsynchronized_dataset(current_user_id, dataset_id)
 
     def latest_synchronized(self):
@@ -294,7 +343,10 @@ class DataSetService(BaseService):
         """
         # Contar descargas por dataset
         downloads_subq = (
-            db.session.query(DSDownloadRecord.dataset_id, func.count(DSDownloadRecord.id).label("downloads"))
+            db.session.query(
+                DSDownloadRecord.dataset_id,
+                func.count(DSDownloadRecord.id).label("downloads"),
+            )
             .group_by(DSDownloadRecord.dataset_id)
             .subquery()
         )
@@ -314,7 +366,10 @@ class DataSetService(BaseService):
             .all()
         )
 
-        return [{"id": ds.id, "title": ds.title, "downloads": ds.downloads, "doi": ds.doi} for ds in ranking]
+        return [
+            {"id": ds.id, "title": ds.title, "downloads": ds.downloads, "doi": ds.doi}
+            for ds in ranking
+        ]
 
     def get_most_viewed_datasets(self, limit=10):
         """
@@ -322,7 +377,9 @@ class DataSetService(BaseService):
         """
         # Contar vistas por dataset
         views_subq = (
-            db.session.query(DSViewRecord.dataset_id, func.count(DSViewRecord.id).label("views"))
+            db.session.query(
+                DSViewRecord.dataset_id, func.count(DSViewRecord.id).label("views")
+            )
             .group_by(DSViewRecord.dataset_id)
             .subquery()
         )
@@ -337,12 +394,15 @@ class DataSetService(BaseService):
             )
             .join(DSMetaData, DataSet.ds_meta_data_id == DSMetaData.id)
             .outerjoin(views_subq, views_subq.c.dataset_id == DataSet.id)
-            .order_by(func.coalesce(views_subq.c.views, 0).desc())
+            .order_by(func.coalesce(views_subq.c.views, 0).asc())
             .limit(limit)
             .all()
         )
 
-        return [{"id": ds.id, "title": ds.title, "views": ds.views, "doi": ds.doi} for ds in ranking]
+        return [
+            {"id": ds.id, "title": ds.title, "views": ds.views, "doi": ds.doi}
+            for ds in ranking
+        ]
 
     def total_dataset_downloads(self) -> int:
         return self.dsdownloadrecord_repository.total_dataset_downloads()
@@ -360,16 +420,24 @@ class DataSetService(BaseService):
             logger.info("Creating dsmetadata...: %s", form.get_dsmetadata())
             dsmetadata = self.dsmetadata_repository.create(**form.get_dsmetadata())
             for author_data in [main_author] + form.get_authors():
-                author = self.author_repository.create(commit=False, ds_meta_data_id=dsmetadata.id, **author_data)
+                author = self.author_repository.create(
+                    commit=False, ds_meta_data_id=dsmetadata.id, **author_data
+                )
                 dsmetadata.authors.append(author)
 
-            dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id)
+            dataset = self.create(
+                commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id
+            )
 
             for csv_model in form.csv_models:
                 csv_filename = csv_model.csv_filename.data
-                fmmetadata = self.fmmetadata_repository.create(commit=False, **csv_model.get_fmmetadata())
+                fmmetadata = self.fmmetadata_repository.create(
+                    commit=False, **csv_model.get_fmmetadata()
+                )
                 for author_data in csv_model.get_authors():
-                    author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
+                    author = self.author_repository.create(
+                        commit=False, fm_meta_data_id=fmmetadata.id, **author_data
+                    )
                     fmmetadata.authors.append(author)
 
                 fm = self.csv_model_repository.create(
@@ -381,7 +449,11 @@ class DataSetService(BaseService):
                 checksum, size = calculate_checksum_and_size(file_path)
 
                 file = self.hubfilerepository.create(
-                    commit=False, name=csv_filename, checksum=checksum, size=size, csv_model_id=fm.id
+                    commit=False,
+                    name=csv_filename,
+                    checksum=checksum,
+                    size=size,
+                    csv_model_id=fm.id,
                 )
                 fm.files.append(file)
             self.repository.session.commit()
@@ -390,11 +462,15 @@ class DataSetService(BaseService):
             self.repository.session.rollback()
             raise exc
         try:
-            logger.info("Nuevo dataset creado. Re-entrenando el motor de recomendación...")
+            logger.info(
+                "Nuevo dataset creado. Re-entrenando el motor de recomendación..."
+            )
             engine = self._get_or_create_engine()
             engine.force_retrain()
             logger.info("Motor de recomendación re-entrenado.")
-            logger.info("Datasets cargados en motor: %s", engine.df["dataset_id"].tolist())
+            logger.info(
+                "Datasets cargados en motor: %s", engine.df["dataset_id"].tolist()
+            )
         except Exception as e:
             logger.error(f"FALLO al re-entrenar el motor de recomendación: {e}")
 
@@ -413,19 +489,16 @@ class DataSetService(BaseService):
 
 
 class AuthorService(BaseService):
-
     def __init__(self):
         super().__init__(AuthorRepository())
 
 
 class DSDownloadRecordService(BaseService):
-
     def __init__(self):
         super().__init__(DSDownloadRecordRepository())
 
 
 class DSMetaDataService(BaseService):
-
     def __init__(self):
         super().__init__(DSMetaDataRepository())
 
@@ -437,7 +510,6 @@ class DSMetaDataService(BaseService):
 
 
 class DSViewRecordService(BaseService):
-
     def __init__(self):
         super().__init__(DSViewRecordRepository())
 
@@ -448,12 +520,13 @@ class DSViewRecordService(BaseService):
         return self.repository.create_new_record(dataset, user_cookie)
 
     def create_cookie(self, dataset: DataSet) -> str:
-
         user_cookie = request.cookies.get("view_cookie")
         if not user_cookie:
             user_cookie = str(uuid.uuid4())
 
-        existing_record = self.the_record_exists(dataset=dataset, user_cookie=user_cookie)
+        existing_record = self.the_record_exists(
+            dataset=dataset, user_cookie=user_cookie
+        )
 
         if not existing_record:
             self.create_new_record(dataset=dataset, user_cookie=user_cookie)
@@ -462,7 +535,6 @@ class DSViewRecordService(BaseService):
 
 
 class DOIMappingService(BaseService):
-
     def __init__(self):
         super().__init__(DOIMappingRepository())
 
@@ -475,7 +547,6 @@ class DOIMappingService(BaseService):
 
 
 class SizeService:
-
     def __init__(self):
         pass
 
@@ -485,6 +556,6 @@ class SizeService:
         elif size < 1024**2:
             return f"{round(size / 1024, 2)} KB"
         elif size < 1024**3:
-            return f"{round(size / (1024 ** 2), 2)} MB"
+            return f"{round(size / (1024**2), 2)} MB"
         else:
-            return f"{round(size / (1024 ** 3), 2)} GB"
+            return f"{round(size / (1024**3), 2)} GB"
